@@ -1,8 +1,4 @@
-#!/usr/bin/env python -W ignore::DeprecationWarning
-
 import numpy as np
-import matplotlib.pyplot as plt
-import random
 from sklearn.model_selection import cross_val_score, StratifiedKFold
 from sklearn.metrics import confusion_matrix
 from sklearn.externals import joblib
@@ -11,11 +7,6 @@ from random import uniform, seed
 from scipy.stats.mode import mode
 random.seed(42)
 
-import warnings
-warnings.simplefilter("ignore", DeprecationWarning)
-from hmmlearn.hmm import GaussianHMM, GMMHMM
-
-from parse_csv import parse_s1_csv
 
 #############################################################
 ########################## Globals ##########################
@@ -33,7 +24,7 @@ SAMPLE_LEN   = 2048
 MAX_SAMPLES      = "This value is set after reading in the data"
 
 ROLL_CLASSES      = ['ramp_up', 'ramp_down', 'slow_roll', 'fast_roll' ]
-ALL_CONDITION_CLASSES = ['Normal',  'Unbalance', 'Preload',   'BearingRub']
+# ALL_CONDITION_CLASSES = ['Normal',  'Unbalance', 'Preload',   'BearingRub']
 CONDITION_CLASSES = ['Normal',  'Unbalance', 'Preload', 'BearingRub']
 # EXCLUDED_CLASSES = list( set(ALL_CONDITION_CLASSES) ^ set(CONDITION_CLASSES) )
 
@@ -46,6 +37,8 @@ N_CLASSES    = len(CLASS_LABELS)
 #############################################################
 ######################### Functions #########################
 #############################################################
+from parse_csv import parse_s1_csv
+
 def prec_rec(pred, truth):
     TP = np.sum((pred == "Normal") and (truth == "Normal"))
     FP = np.sum((pred != "Normal") and (truth == "Normal"))
@@ -55,21 +48,6 @@ def prec_rec(pred, truth):
     recall    = TP / (TP + TN)
     return precision, recall
 
-def calc_startprob(length):
-    startprob = np.zeros(length)
-    startprob[0] = 2
-    return startprob
-
-def calc_transmat(length):
-    # transmat = np.zeros((length, length))
-    # for i in xrange(length):
-    #     transmat[i,i] = 1.0 + (1.0 / length)
-    #     if i != (length - 1):
-    #         transmat[i,i+1] = 3 - transmat[i,i]
-    #     else:
-    #         transmat[i,i] = 2.0
-    transmat = ( np.ones((length, length)) ) + random.uniform(0.05, 0.8)
-    return transmat
 
 #############################################################
 ###################### Meta-Parameters ######################
@@ -82,7 +60,7 @@ VERBOSE           = True
 
 N_FOLDS           = 5
 
-# RUN_ID = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+RUN_ID = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
 # metaparam_file = open(('metaparams_%s.txt' % RUN_ID), 'w')
 # metaparam_file.write("Number of Components: %d" % N_COMPONENTS)
 # metaparam_file.write("Number of Mix Models: %d" % N_MIX)
@@ -97,9 +75,17 @@ class RF:
                      random_state=RANDOM_STATE,
                      verbose=VERBOSE):
         
-        self.rf_clfs = [RandomForestClassifier(n_estimators=n_estimators, max_depth=max_depth, min_samples_split=min_samples_split, random_state=random_state, verbose=verbose).fit(X[s_id][train], y[s_id][train])] * N_SENSORS
+        self.rf_clfs = [RandomForestClassifier(n_estimators=n_estimators,
+                                                   max_depth=max_depth,
+                                                   min_samples_split=min_samples_split,
+                                                   random_state=random_state,
+                                                   verbose=verbose)] * N_SENSORS
         
-        self.et_clfs = [ExtraTreesClassifier(n_estimators=n_estimators, max_depth=max_depth, min_samples_split=min_samples_split, random_state=random_state, verbose=verbose).fit(X[s_id][train], y[s_id][train])] * N_SENSORS
+        self.et_clfs = [ExtraTreesClassifier(n_estimators=n_estimators,
+                                                 max_depth=max_depth,
+                                                 min_samples_split=min_samples_split,
+                                                 random_state=random_state,
+                                                 verbose=verbose)] * N_SENSORS
 
 
     #############################################################
@@ -260,10 +246,11 @@ class RF:
         print("Total Confusion Matrix: \n%s\n" % total_conf_mat)
 
     def save(self, rf_clfs, et_clfs):
-        print "Saving Random Forest Model"
-        joblib.dump(rf_clfs[s_id], "models/rf/rf_fold%d_s%d.pkl" % (fold_count, s_id))
-        print "Saving Extra Trees Model"
-        joblib.dump(et_clfs[s_id], "models/rf/et_fold%d_s%d.pkl" % (fold_count, s_id))
+        for s_id in range(N_SENSORS):
+            print "Saving Random Forest Model"
+            joblib.dump(rf_clfs[s_id], "models/rf/%s/rf_fold%d_s%d.pkl" % (RUN_ID, fold_count, s_id))
+            print "Saving Extra Trees Model"
+            joblib.dump(et_clfs[s_id], "models/rf/%s/et_fold%d_s%d.pkl" % (RUN_ID, fold_count, s_id))
 
 
     def classify(self, cracked_data):
@@ -353,6 +340,13 @@ class RF:
 
 #         fold_count += 1
         
-        # for samp_id in range( n_class_samples ):
-            
+#     rf_accuracy = np.mean([output['acc'] for output in rf_totals])
+#     rf_conf_mat = np.sum([output['conf_mat'] for output in rf_totals], axis=0)
+#     et_accuracy = np.mean([output['acc'] for output in et_totals])
+#     et_conf_mat = np.sum([output['conf_mat'] for output in et_totals], axis=0)
+#     print("Random Forest Accuracy: %s" % rf_accuracy)
+#     print("Random Forest Confusion Matrix: \n%s\n" % rf_conf_mat)
+#     print("Extra Trees Accuracy: %s" % et_accuracy)
+#     print("Extra Trees Confusion Matrix: \n%s\n" % et_conf_mat)
+
 
