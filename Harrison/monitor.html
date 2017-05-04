@@ -1,0 +1,137 @@
+<!DOCTYPE HTML>
+<!--
+	Read Only by HTML5 UP
+	html5up.net | @ajlkn
+	Free for personal and commercial use under the CCA 3.0 license (html5up.net/license)
+-->
+<html>
+
+<script src="assets/js/jquery-3.2.1.js"></script>
+<script src="assets/js/jquery.min.js"></script>
+<script src="assets/js/jquery.scrollzer.min.js"></script>
+<script src="assets/js/jquery.scrolly.min.js"></script>
+<script src="assets/js/skel.min.js"></script>
+<script src="assets/js/util.js"></script>
+<!--[if lte IE 8]><script src="assets/js/ie/respond.min.js"></script><![endif]-->
+<script src="assets/js/main.js"></script>
+
+
+	<head>
+		<title>GE Machine Learning</title>
+		<meta charset="utf-8" />
+		<meta name="referrer" content="origin">
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<!--[if lte IE 8]><script src="assets/js/ie/html5shiv.js"></script><![endif]-->
+		<link rel="stylesheet" href="assets/css/main.css" />
+		<!--[if lte IE 8]><link rel="stylesheet" href="assets/css/ie8.css" /><![endif]-->
+	</head>
+	<body>
+
+		<!-- Header -->
+			<section id="header">
+				<header>
+					<span class="image avatar"><img src="images/team_1.jpg" alt="" /></span>
+					<h1 id="logo"><a href="#">GE Machine Learning</a></h1>
+					<p>We are a group of CSE students <br />
+					  from the 2017 CS425/426 <br />
+					  at the University of Nevada, Reno</p>
+				</header>
+				<nav id="nav">
+					<ul>
+            <li><a href="#overview" class="active">Overview</a></li>
+						<li><a href="#role_state" class="active">Role State</a></li>
+						<li><a href="#error_mode">Error Mode</a></li>
+						<li><a href="#sensor_data">Sensor Data</a></li>
+					</ul>
+				</nav>
+				<footer>
+					<ul class="icons">
+						<li><a href="https://pakelley.github.io/" class="icon fa-github"><span class="label">Github</span></a></li>
+						<li><a href="mailto:pakelley@nevada.unr.edu?subject=GE Machine Learning
+&body=Tell me all about your project!" class="icon fa-envelope"><span class="label">Email</span></a></li>
+					</ul>
+				</footer>
+			</section>
+
+		<!-- Wrapper -->
+			<div id="wrapper">
+
+				<!-- Main -->
+					<div id="main">
+
+						<!-- One -->
+							<section id="overview">
+								<div class="container">
+									<header class="major">
+										<h2>Overview</h2>
+										<p>Displaying the live information on the turbine.<br />
+									</header>
+									<p>This page displays live info on the turbine including its current role state, error mode, and a display of the sensor data.</p>
+								</div>
+							</section>
+
+						<!-- Two -->
+							<section id="role_state">
+								<div class="container">
+									<h3>Turbine Role States</h3>
+									<p>A display of the live role state classification.</p>
+                  <iframe id="rg" src="rollGraph.html" name="targetframe" allowTransparency="true" scrolling="no" frameborder="0" width="1000" height="450">
+                  </iframe>
+								</div>
+							</section>
+
+						<!-- Three -->
+							<section id="error_mode">
+								<div class="container">
+									<h3>Turbine Error Modes</h3>
+									<p>A display of the live error mode classifcation.</p>
+                  <iframe id="eg" src="errorGraph.html" name="targetframe" allowTransparency="true" scrolling="no" frameborder="0" width="1000" height="450">
+                  </iframe>
+								</div>
+							</section>
+
+
+          <section id="sensor_data">
+            <div class="container">
+              <h3>Turbine sensor data</h3>
+              <p>A display of the turbine's sensor data.</p>
+              <IMG SRC="motorside_x.png" ALT="motorside_x.png" WIDTH=400 HEIGHT=400>
+              <IMG SRC="outerside_x.png" ALT="outside_y" WIDTH=400 HEIGHT=400>
+              <IMG SRC="motorside_y.png" ALT="motorside_y" WIDTH=400 HEIGHT=400>
+              <IMG SRC="outerside_y.png" ALT="outside_y" WIDTH=400 HEIGHT=400>
+              <IMG SRC="motorside_orbit.png" ALT="motorside_orbit" WIDTH=400 HEIGHT=400>
+              <IMG SRC="outerside_orbit.png" ALT="outerside_orbit" WIDTH=400 HEIGHT=400>
+            </div>
+
+          </section>
+      </div>
+
+				<!-- Footer -->
+					<section id="footer">
+
+						<div class="container">
+							<ul class="copyright">
+								<li>Design: <a href="http://html5up.net">HTML5 UP</a></li>
+							</ul>
+						</div>
+					</section>
+
+			</div>
+
+		<!-- Scripts -->
+
+
+
+	</body>
+
+
+	<script src="http://code.jquery.com/jquery-latest.min.js" type="text/javascript"></script>
+	<script language="javascript" type="text/javascript">
+
+	var timeout = setInterval(reloadGraph, 5000);
+	function reloadGraph () {
+			 $('#rg').attr('src', $('#rg').attr('src'));
+			 $('#eg').attr('src', $('#eg').attr('src'));
+	}
+	</script>
+</html>

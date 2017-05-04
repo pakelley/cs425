@@ -1,0 +1,35 @@
+<!DOCTYPE HTML>
+<!--
+	Read Only by HTML5 UP
+	html5up.net | @ajlkn
+	Free for personal and commercial use under the CCA 3.0 license (html5up.net/license)
+-->
+<html>
+	<head>
+		<title>GE Machine Learning</title>
+	</head>
+	<body>
+
+						<!-- Three -->
+							<section id="error_mode">
+									<h3>Turbine Error Modes</h3>
+									<p>A display of the live error mode classifcation.</p>
+                  <iframe id = "g1" src="graph.html" name="targetframe" allowTransparency="true" scrolling="no" frameborder="0" width="1000" height="450">
+                  </iframe>
+
+							</section>
+
+
+	</body>
+
+  <script src="http://code.jquery.com/jquery-latest.min.js" type="text/javascript"></script>
+  <script language="javascript" type="text/javascript">
+
+  var timeout = setInterval(reloadGraph, 5000);
+  function reloadGraph () {
+       $('#g1').attr('src', $('#g1').attr('src'));
+  }
+  </script>
+
+
+</html>
