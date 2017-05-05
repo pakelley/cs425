@@ -12,6 +12,8 @@ import atexit
 from signal import SIGTERM
 import numpy as np
 
+from classifier import Classifier
+
 #---------- GLOBAL SETTINGS VARIABLES ----------------------
 
 TIMEINTERVAL = 2
@@ -19,7 +21,9 @@ TIMEINTERVAL = 2
 #datetime.now() and the query is not
 #infinitesimally small - measured in seconds
 
-BLOBNUMBER = 4
+REFRESHTIME = 5
+
+BLOBNUMBER = 5
 #The number of 4-set sensor blobs allowed
 #If BLOBNUMBER = 5, then 20 sensor blobs will be collected
 
@@ -48,14 +52,16 @@ class SampleRow(object):
             j = j+2
 
 
-def getUTCtime():
-    now = datetime.datetime.now() - datetime.timedelta(seconds=TIMEINTERVAL)
-    utctime = str(now + datetime.timedelta(hours=7))
+#def getUTCtime():
+    #now = datetime.datetime.now() - datetime.timedelta(seconds=TIMEINTERVAL)
+    #utctime = str(now + datetime.timedelta(hours=7))
     #utctime = "2017-05-04 21:16:00" #------------ For Testing
-    return utctime[:-3]
+    #return utctime[:-3]
 
-def executeQuery(cursor, utctime):
-    qcommand = "select segment_id,gmt,start_rev_rpm,sample_data from dbo.waveform where (segment_id = 218 or segment_id = 244 or segment_id = 270 or segment_id = 296) and gmt > '" + str(utctime) + "' order by gmt, segment_id"
+def executeQuery(cursor):
+    #qcommand = "select segment_id,gmt,start_rev_rpm,sample_data from dbo.waveform where (segment_id = 218 or segment_id = 244 or segment_id = 270 or segment_id = 296) and gmt > '" + str(utctime) + "' order by gmt, segment_id"
+    totalRows = BLOBNUMBER*4
+    qcommand = "select top " + str(totalRows) + " segment_id,gmt,start_rev_rpm,sample_data from dbo.waveform where (segment_id = 218 or segment_id = 244 or segment_id = 270 or segment_id = 296) order by gmt desc, segment_id"
     cursor.execute(qcommand)
 
 def checkRowLoopValid(rowCount, classRow):
@@ -82,8 +88,9 @@ class RunForever(object):
         else:
             print "program starting"
 
-        toggle = True
         while(1):
+            timeNow = datetime.datetime.now()
+            timeNextQuery = timeNow + datetime.timedelta(seconds=REFRESHTIME)
 
             '''
             -----------WHAT EVERYONE ELSE NEEDS-------------
@@ -101,17 +108,12 @@ class RunForever(object):
             classRowList = [] #WHAT BRIAN NEEDS
 
             #Gets UTC time from Actual Time for use in SQL Query
-            utctime = getUTCtime()
+            #utctime = getUTCtime()
 
             #Runs the query
-            executeQuery(cursor, utctime)
+            executeQuery(cursor)
 
             row = cursor.fetchone()
-            if row:
-                #print " "
-                #print "Query FULL"
-                #print " "
-                toggle = True
 
             rowCount = 0
             valid = True
@@ -130,17 +132,12 @@ class RunForever(object):
                 #writer.writerow([rowTup])
                 row = cursor.fetchone()
 
-            if not classRowList and toggle:
-                #print " "
-                #print "QUERY EMPTY"
-                #print " "
-                toggle = False
-            elif rowCount % 4 != 0:
+            if rowCount % 4 != 0:
                 print "INVADLID DATA-------------------------------------------- NOT GROUPED BY 4 ---------------"
             else:
                 for p in classRowList:
                     dataPassingList.extend([p[0]])
-                    #print p[0]
+                    print p[0]
 
 
             '''
@@ -150,6 +147,27 @@ class RunForever(object):
 
 
             '''
+            np_dpl = np.array(dataPassingList)
+            np_dpl = np.reshape( np_dpl, (4, BLOBNUMBER, 2048) )
+            X = np.transpose(np_dpl, (1, 2, 0))
+            # print X.shape
+
+            clf = Classifier()
+            classification = clf.classify(X, "RandomForest")
+            print classification
+
+
+
+
+
+            #TIMER TO WAIT FOR NEXT CALL
+            go = False
+            while not go:
+                timeNow = datetime.datetime.now()
+                if timeNow > timeNextQuery:
+                    go = True
+                    print "next query"
+
 
 
         print "program ending"
