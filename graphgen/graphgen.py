@@ -65,29 +65,51 @@ class GraphGen:
         plt.plot(base, self.sensorData[0])
         plt.xlim(0,2048)
         plt.title("Motor-Side X Plot")
+        output = mpld3.fig_to_html(fig1)
+        with open('mX.html', 'w') as f:
+            f.write(output)
+        plt.savefig('mX.png')
 
         fig2 = plt.figure(1, figsize=(4.8, 3.2))
         plt.plot(base, self.sensorData[1])
         plt.xlim(0,2048)
         plt.title("Motor-Side Y Plot")
+        output = mpld3.fig_to_html(fig2)
+        with open('mY.html', 'w') as f:
+            f.write(output)
+        plt.savefig('mY.png')
 
         fig3 = plt.figure(2, figsize=(4.8, 3.2))
         plt.plot(self.sensorData[0], self.sensorData[1])
         plt.title("Motor-Side Orbit Plot")
+        output = mpld3.fig_to_html(fig3)
+        with open('mO.html', 'w') as f:
+            f.write(output)
+        plt.savefig('mO.png')
 
         fig4 = plt.figure(3, figsize=(4.8, 3.2))
         plt.plot(base, self.sensorData[2])
         plt.xlim(0,2048)
         plt.title("Outer-Side X Plot")
+        output = mpld3.fig_to_html(fig4)
+        with open('oX.html', 'w') as f:
+            f.write(output)
+        plt.savefig('oX.png')
 
         fig5 = plt.figure(4, figsize=(4.8, 3.2))
         plt.plot(base, self.sensorData[3])
         plt.xlim(0,2048)
         plt.title("Outer-Side Y Plot")
+        output = mpld3.fig_to_html(fig5)
+        with open('oY.html', 'w') as f:
+            f.write(output)
+        plt.savefig('oY.png')
 
         fig6 = plt.figure(5, figsize=(4.8, 3.2))
         plt.plot(self.sensorData[2], self.sensorData[3])
         plt.title("Outer-Side Orbit Plot")
-        #plt.show()
-        plt.savefig('sensorData.png')
+        output = mpld3.fig_to_html(fig6)
+        with open('oO.html', 'w') as f:
+            f.write(output)
+        plt.savefig('oO.png')
         plt.close()

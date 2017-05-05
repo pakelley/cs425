@@ -25,7 +25,7 @@ class Classifier:
 
         return {
             "classifications": classifications,
-            "cracked_data":    cracked_data[0]
+            "cracked_data":    cracked_data
             }
 
 
