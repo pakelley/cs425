@@ -24,7 +24,7 @@ RUN_ID    = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
 LOAD_PATH = ""
 
 
-FILENAME   = "algorithms/data/combined_4-29.csv"
+FILENAME   = "data/combined_4-29.csv"
 SENSOR_IDS = [218, 244, 270, 296]
 COND_CLASS_NAMES = ['Normal', 'Unbalance', 'Preload', 'BearingRub']
 TOP_THRESH = 2800
@@ -127,7 +127,10 @@ class RF:
         self.class_names = class_names
         
         if filepath != None:
+            self.rf_clfs = [None] * N_SENSORS
+            self.et_clfs = [None] * N_SENSORS
             self.load(filepath)
+            print filepath
 
         else:
             self.rf_clfs = [RandomForestClassifier(n_estimators          = n_estimators,
@@ -148,10 +151,12 @@ class RF:
 
     def classify(self, cracked_data):
         probs = [None] * N_SENSORS
+        X = np.transpose(cracked_data, (2, 0, 1) )
         for s_id in range(N_SENSORS):
             # rf_pred = rf_clfs[s_id].predict(X[s_id][test])
-            # et_pred = et_clfs[s_id].predict(X[s_id][test])
-            probs[s_id] = np.random.rand(N_CLASSES)  # clf.predict_proba(cracked_data)
+            et_pred = self.et_clfs[s_id].predict(X[s_id])
+            # probs[s_id] = np.random.rand(N_CLASSES)  # clf.predict_proba(cracked_data)
+            probs[s_id] = et_pred
             
         # print probs
         ens_probs = np.mean(probs, axis=0)
@@ -168,14 +173,26 @@ class RF:
 
 
     def probs(self, X):
-        rf_probs = [clf[s_id].predict_proba(X)  for clf in self.rf_clfs]
-        et_probs = [clf[s_id].predict_proba(X)  for clf in self.et_clfs]
+        rf_probs = [None] * N_SENSORS
+        et_probs = [None] * N_SENSORS
+        for s_id in range(N_SENSORS):
+            rf_probs = self.rf_clfs[s_id].predict_proba(X[s_id])
+            et_probs = self.rf_clfs[s_id].predict_proba(X[s_id])
 
-        return rf_probs, et_probs
+        rf_ens_probs = np.argmax(rf_probs, axis=1)
+        et_ens_probs = np.argmax(et_probs, axis=1)
+
+        return rf_ens_probs, et_ens_probs
         
 
     def evaluate(self, X, y):
         (et_probs, rf_probs) = self.probs(X)
+
+        rf_decision = np.argmax(rf_probs)
+        et_decision = np.argmax(et_probs)
+
+        return rf_decision, et_decision
+         
 
     # X[s_id][train], y[s_id][train]
     def train(self, X, y):
@@ -184,26 +201,28 @@ class RF:
         for s_id in xrange(N_SENSORS):
             print "### Training on sensor id %d ###" % s_id
 
-            self.rf_clfs[s_id] = self.rf_clfs[s_id].fit(X[s_id], y[s_id])
-            self.et_clfs[s_id] = self.et_clfs[s_id].fit(X[s_id], y[s_id])
+            self.rf_clfs[s_id] = self.rf_clfs[s_id].fit(X[s_id], y)
+            self.et_clfs[s_id] = self.et_clfs[s_id].fit(X[s_id], y)
 
-        self.save( "models/rf/%s/fold%d" % (RUN_ID, fold_count) )
+        self.save( "./models/rf" )
 
 
     # models/rf/%s/fold%d % (RUN_ID, fold_count)
     def save(self, path):
         for s_id in range(N_SENSORS):
-            print "Saving Random Forest Model"
-            joblib.dump(rf_clfs[s_id], "%s/rf_s%d.pkl" % (path, s_id))
+            rf_filename = "%s/rf_%s_s%d.pkl" % (path, RUN_ID, s_id)
+            print "Saving Random Forest Model to %s" % rf_filename
+            joblib.dump(self.rf_clfs[s_id], rf_filename)
             print "Saving Extra Trees Model"
-            joblib.dump(et_clfs[s_id], "%s/et_s%d.pkl" % (path, s_id))
+            joblib.dump(self.et_clfs[s_id], "%s/et_%s_s%d.pkl" % (path, RUN_ID, s_id))
 
     def load(self, path):
         for s_id in range(N_SENSORS):
-            print "Saving Random Forest Model"
-            rf_clfs[s_id] = joblib.load("%s/rf_s%d.pkl" % (path, s_id))
+            rf_filename = "%s/rf_s%d.pkl"  % (path, s_id)
+            print "Saving Random Forest Model from %s" % rf_filename
+            self.rf_clfs[s_id] = joblib.load(rf_filename)
             print "Saving Extra Trees Model"
-            et_clfs[s_id] = joblib.load("%s/et_s%d.pkl" % (path, s_id))
+            self.et_clfs[s_id] = joblib.load("%s/et_s%d.pkl" % (path, s_id))
 
             
     def read_data(self):
@@ -232,19 +251,32 @@ class RF:
         ### Fast mask all data
         fast_mask = (roll_classes == 'fast_roll')
         X_f = np.array([x[fast_mask] for x in X_spl ])
+        # X_ft = np.transpose(X_f, (1, 2, 0))
         roll_classes = np.array(roll_classes[fast_mask])
+        r_classes = [ROLL_CLASSES.index(class_name) for class_name in roll_classes]
         condition_classes = np.array(condition_classes[fast_mask])
+        cond_classes = [COND_CLASS_NAMES.index(class_name) for class_name in condition_classes]
 
         ### Stratified selection of data
-        MAX_LEN = 20
-        cl_masks = [condition_classes == class_name for class_name in COND_CLASS_NAMES]
-        X_cl    = np.array([x[mask][:MAX_LEN] for x, mask in zip(X_f, cl_masks)])
-        roll_cl = np.array([roll_classes[mask][:MAX_LEN] for mask in cl_masks])
-        cond_cl = np.array([condition_classes[mask][:MAX_LEN] for mask in cl_masks])
+        # MAX_LEN = 200
+        # cl_masks = [condition_classes == class_name for class_name in COND_CLASS_NAMES]
+        # X_cl = [None] * N_SENSORS
+        # for s_id in range(N_SENSORS):
+        # X_cl = np.array([X_ft[mask] for mask in cl_masks])
+        # X_cl = np.array([X_ft[mask][:MAX_LEN] for mask in cl_masks])
+        # X_cl = np.transpose(X_cl, (0, 3, 1, 2))
+        # roll_cl = np.array([roll_classes[mask] for mask in cl_masks])
+        # roll_cl = np.array([roll_classes[mask][:MAX_LEN] for mask in cl_masks])
+        # cond_cl = np.array([condition_classes[mask] for mask in cl_masks])
+        # cond_cl = np.array([cond_classes[mask][:MAX_LEN] for mask in cl_masks])
 
         ### FINAL FORMatting
-        X = np.transpose(X_cl, (1, 2, 0))
-        y = cond_cl[0]
+        # X = np.reshape(X_cl, (N_SENSORS, -1, SAMPLE_LEN)) # np.transpose(X_cl, (1, 2, 0))
+        # y = np.reshape(cond_cl, (-1) )
+        print X_f.shape
+        print np.array(cond_classes).shape
+        X = X_f
+        y = cond_classes
         return X, y
 
     
@@ -325,8 +357,16 @@ class RF:
 
     
 # Evaluate models with respect to n_estimators
-scores = []
+# scores = []
 
-skf = StratifiedKFold(n_splits=N_FOLDS, random_state=42)
+# skf = StratifiedKFold(n_splits=N_FOLDS, random_state=42)
 # Note here that we're getting one fold mask to be used for all sensors(for sensor agreement)
 
+# rf = RF()
+# X, y = rf.read_data()
+# rf.train(X,y)
+# rf_d, et_d = rf.evaluate(X,y)
+# rf_preds = [None] * N_SENSORS
+
+# rt_p, et_p = rf.probs(X)
+# print (sum(rt_p == y) * 1.0) / rt_p.shape[0]
