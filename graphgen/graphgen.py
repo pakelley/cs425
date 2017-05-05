@@ -20,12 +20,17 @@ class GraphGen:
         self.X_error.append(self.index)
         self.y_roll.append(rollConf)
         self.y_error.append(errorConf)
+        if (self.index > 25):
+            self.X_roll = self.X_roll[1:]
+            self.X_error = self.X_error[1:]
+            self.y_roll = self.y_roll[1:]
+            self.y_error = self.y_error[1:]
         self.sensorData = sensorData.T
         self.genRollGraph()
         self.genErrorGraph()
         self.genSensorGraph()
     def genRollGraph(self):
-   
+
         fig, ax = plt.subplots()
         labels = ["Ramp-Up", "Ramp-Down", "Slow-Roll", "Fast-Roll"]
         line_collections = ax.plot(self.X_roll, self.y_roll, lw=4, alpha=0.2)
@@ -42,7 +47,7 @@ class GraphGen:
         plt.savefig('rollGraph.png')
         plt.close()
     def genErrorGraph(self):
-  
+
 
         fig, ax = plt.subplots()
         labels = ["Preload", "Weight Unbalance", "Bearing Rub", "Safe"]
@@ -65,22 +70,22 @@ class GraphGen:
         plt.plot(base, self.sensorData[0])
         plt.xlim(0,2048)
         plt.title("Motor-Side X Plot")
-        output = mpld3.fig_to_html(fig1)
-        with open('mX.html', 'w') as f:
-            f.write(output)
+        #output = mpld3.fig_to_html(fig1)
+        #with open('mX.html', 'w') as f:
+        #    f.write(output)
         plt.savefig('mX.png')
 
         fig2 = plt.figure(1, figsize=(4.8, 3.2))
         plt.plot(base, self.sensorData[1])
         plt.xlim(0,2048)
         plt.title("Motor-Side Y Plot")
-        output = mpld3.fig_to_html(fig2)
-        with open('mY.html', 'w') as f:
-            f.write(output)
+        #output = mpld3.fig_to_html(fig2)
+        #with open('mY.html', 'w') as f:
+        #    f.write(output)
         plt.savefig('mY.png')
 
         fig3 = plt.figure(2, figsize=(4.8, 3.2))
-        plt.plot(self.sensorData[0], self.sensorData[1])
+        plt.plot(self.sensorData[0][::5], self.sensorData[1][::5])
         plt.title("Motor-Side Orbit Plot")
         output = mpld3.fig_to_html(fig3)
         with open('mO.html', 'w') as f:
@@ -91,22 +96,22 @@ class GraphGen:
         plt.plot(base, self.sensorData[2])
         plt.xlim(0,2048)
         plt.title("Outer-Side X Plot")
-        output = mpld3.fig_to_html(fig4)
-        with open('oX.html', 'w') as f:
-            f.write(output)
+        #output = mpld3.fig_to_html(fig4)
+        #with open('oX.html', 'w') as f:
+        #    f.write(output)
         plt.savefig('oX.png')
 
         fig5 = plt.figure(4, figsize=(4.8, 3.2))
         plt.plot(base, self.sensorData[3])
         plt.xlim(0,2048)
         plt.title("Outer-Side Y Plot")
-        output = mpld3.fig_to_html(fig5)
-        with open('oY.html', 'w') as f:
-            f.write(output)
+        #output = mpld3.fig_to_html(fig5)
+        #with open('oY.html', 'w') as f:
+        #    f.write(output)
         plt.savefig('oY.png')
 
         fig6 = plt.figure(5, figsize=(4.8, 3.2))
-        plt.plot(self.sensorData[2], self.sensorData[3])
+        plt.plot(self.sensorData[2][::5], self.sensorData[3][::5])
         plt.title("Outer-Side Orbit Plot")
         output = mpld3.fig_to_html(fig6)
         with open('oO.html', 'w') as f:
