@@ -12,6 +12,8 @@ import atexit
 from signal import SIGTERM
 import numpy as np
 
+import reportGen
+
 from classifier import Classifier
 
 #---------- GLOBAL SETTINGS VARIABLES ----------------------
@@ -156,8 +158,21 @@ class RunForever(object):
             classification = clf.classify(X, "RandomForest")
             print classification
 
-
-
+			#move normal state to end of array
+			classification["class_names"].append(classification["class_names"][0]);
+			classification["confidence_vec"].append(classification["confidence_vec"][0]);
+			classification["class_names"][0] = "Classifier Name"
+			classification["confidence_vec"][0] = "Confidence Level"
+			
+			cVec = []
+			cVec.append(classification["class_names"])
+			cVec.append(classification["confidence_vec"])
+			
+			rollVec = [["Classifier Name","slow roll","ramp up","ramp down"],
+			["Confidence Level",12.5,12.5,75]]
+			
+			#produce pdf
+			writeReport( ["mO.png","mX.png","mY.png"], cVec, rollVec)
 
 
             #TIMER TO WAIT FOR NEXT CALL
