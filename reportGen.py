@@ -24,7 +24,7 @@ def producePivot(condVec,rollVec):
 	#initialize top row and find safe state column
 	safeCol = 0
 	for cond in condVec[0]:
-		if (cond is "Safe") or (cond is "safe"):
+		if (cond is "Normal") or (cond is "normal"):
 			safeCol = len(pivotTable[0])
 			pivotTable[0].append("Unsafe")
 
@@ -217,4 +217,4 @@ condVec = [["Classifier Name","rub","preload","outer bearing","inner bearing","S
 rollVec = [["Classifier Name","slow roll","ramp up","ramp down"],
 		["Confidence Level",12.5,12.5,75]]
 fNames = ["motorside_orbit.png","motorside_x.png","motorside_y.png"]
-writeReport(fNames,condVec,rollVec,False)
+#writeReport(fNames,condVec,rollVec,False)
