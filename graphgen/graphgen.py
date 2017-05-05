@@ -85,7 +85,7 @@ class GraphGen:
         plt.savefig('mY.png')
 
         fig3 = plt.figure(2, figsize=(4.8, 3.2))
-        plt.plot(self.sensorData[0][::10], self.sensorData[1][::10])
+        plt.plot(self.sensorData[0][::5], self.sensorData[1][::5])
         plt.title("Motor-Side Orbit Plot")
         output = mpld3.fig_to_html(fig3)
         with open('mO.html', 'w') as f:
@@ -111,7 +111,7 @@ class GraphGen:
         plt.savefig('oY.png')
 
         fig6 = plt.figure(5, figsize=(4.8, 3.2))
-        plt.plot(self.sensorData[2][::10], self.sensorData[3][::10])
+        plt.plot(self.sensorData[2][::5], self.sensorData[3][::5])
         plt.title("Outer-Side Orbit Plot")
         output = mpld3.fig_to_html(fig6)
         with open('oO.html', 'w') as f:

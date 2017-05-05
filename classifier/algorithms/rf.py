@@ -32,7 +32,7 @@ BOT_THRESH = 600
 #############################################################
 ######################### Functions #########################
 #############################################################
-from parse_csv import parse_s1_csv
+# from parse_csv import parse_s1_csv
 
 def prec_rec(pred, truth):
     TP = np.sum((pred == "Normal") and (truth == "Normal"))
@@ -161,7 +161,7 @@ class RF:
         
         return {
             "classification": classification,
-            "confidence_vec": ens_probs,
+            "confidence_vec": list(ens_probs),
             "class_names":    self.class_names
             }
 
