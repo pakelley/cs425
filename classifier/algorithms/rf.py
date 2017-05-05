@@ -26,7 +26,7 @@ RUN_ID = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
 #############################################################
 ######################### Functions #########################
 #############################################################
-from parse_csv import parse_s1_csv
+''' from parse_csv import parse_s1_csv '''
 
 def prec_rec(pred, truth):
     TP = np.sum((pred == "Normal") and (truth == "Normal"))
@@ -150,7 +150,7 @@ class RF:
         
         return {
             "classification": classification,
-            "confidence_vec": { k:v for k,v in (zip(self.class_names, ens_probs)) }
+            "confidence_vec": ens_probs
             }
 
     

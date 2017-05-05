@@ -24,7 +24,7 @@ class SVM:
 
     def train():
         # Read in data
-        from parse_csv import parse_s1_csv
+        ''' from parse_csv import parse_s1_csv '''
         # DATA_CSV = "../AllFromMarchDataPatrick.csv"
         # DATA_CSV = "../Data_Normal_4_3_17.csv"
         # DATA_CSV = "../data/combined_allClasses_test.csv"
