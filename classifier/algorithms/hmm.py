@@ -66,19 +66,30 @@ VERBOSE         = True
 
 N_FOLDS         = 3
 
+
+def prec_rec(pred, truth):
+    TP = np.sum((pred == "Normal") and (truth == "Normal"))
+    FP = np.sum((pred != "Normal") and (truth == "Normal"))
+    TN = np.sum((pred != "Normal") and (truth != "Normal"))
+    FN = np.sum((pred == "Normal") and (truth != "Normal"))
+    precision = TP / (TP + FP)
+    recall    = TP / (TP + TN)
+    return precision, recall
+
+
 class HMM:
     def __init__(n_components=N_COMPONENTS,
-                     n_mix=N_MIX,
-                     n_iters=N_ITERS,
-                     cov_type=COV_TYPE,
-                     algorithm=ALGORITHM,
+                     n_mix         = N_MIX,
+                     n_iters       = N_ITERS,
+                     cov_type      = COV_TYPE,
+                     algorithm     = ALGORITHM,
                      tol=TOL,
-                     startpr_prior=STARTPROB_PRIOR,
-                     trans_prior=TRANSMAT_PRIOR,
-                     init_params=INIT_PARAMS,
-                     params=PARAMS,
-                     verbose=VERBOSE,
-                     class_names=CONDITION_CLASSES):
+                     startpr_prior = STARTPROB_PRIOR,
+                     trans_prior   = TRANSMAT_PRIOR,
+                     init_params   = INIT_PARAMS,
+                     params        = PARAMS,
+                     verbose       = VERBOSE,
+                     class_names   = CONDITION_CLASSES):
         
         self.model = {}
         for class_name in class_names:
@@ -102,15 +113,6 @@ class HMM:
     #############################################################
     ######################### Functions #########################
     #############################################################
-    def prec_rec(pred, truth):
-        TP = np.sum((pred == "Normal") and (truth == "Normal"))
-        FP = np.sum((pred != "Normal") and (truth == "Normal"))
-        TN = np.sum((pred != "Normal") and (truth != "Normal"))
-        FN = np.sum((pred == "Normal") and (truth != "Normal"))
-        precision = TP / (TP + FP)
-        recall    = TP / (TP + TN)
-        return precision, recall
-
     def calc_startprob(length):
         startprob = np.zeros(length)
         startprob[0] = 2
@@ -159,7 +161,7 @@ class HMM:
         samples = np.transpose(samples, (1, 2, 0))
         labels  = np.transpose(labels,  (1, 0))
 
-                # Training on conditions
+        # Training on conditions
         if( self.class_names == CONDITION_CLASSES ):
             print "Training on Condition Classes"
             labels      = condition_labels
@@ -173,7 +175,14 @@ class HMM:
 
         return (samples, labels, sample_ref, ground_truth)
         
-    def train(filename=None, data_dict=None):
+    def train(self, X, y, lengths=[SAMPLE_LEN]):
+
+        for class_name in self.class_names:
+            print "Training %s Model" % class_name
+            self.model[class_name] = self.model[class_name].fit(X , lengths)
+
+
+    def evaluate(self, filename=None, data_dict=None):
         if(filename != None):
             (samples, labels,
                 sample_ref, ground_truth) = read_from_file(filename)
@@ -183,13 +192,10 @@ class HMM:
             sample_ref   = data_dict['sample_ref']
             ground_truth = data_dict['ground_truth']
         else:
-            raise ValueError("ERROR: Improper use of HMM.train: pass in either a filename or dictionary of samples/labels")
+            raise ValueError("ERROR: Improper use of HMM.evaluate: pass in either a filename or dictionary of samples/labels")
         
-        # Now that our data is almost situated, enforce a uniform prior for all classes for training
-        MAX_SAMPLES = min([ np.sum(samples[ground_truth == class_name]) for class_name in self.class_names ])
-
+        
         skf = StratifiedKFold(n_splits=N_FOLDS, random_state=42)
-        # Note here that we're getting one fold mask to be used for all sensors(for sensor agreement)
 
         summaries = [{}] * N_FOLDS
         # scores = [[]] * MAX_SAMPLES # FIXME (MAX_SAMPLES)
@@ -218,20 +224,19 @@ class HMM:
             for class_name in CLASS_LABELS:
                 class_mask = (ground_truth[train] == class_name)
                 
-                print "Training %s Model" % class_name
-
                 X_raw = X_train[class_mask]
                 X_raw = X_train[:MAX_SAMPLES] # FIXME (MAX_SAMPLES)
                 X_raw = np.reshape(X_raw, (-1, N_COMPONENTS)) # N_COMPONENTS should == N_SENSORS!!!
                 # lengths = [SAMPLE_LEN] * MAX_SAMPLES # X_train[class_mask].shape[0]
                 lengths = [SAMPLE_LEN] * (X_raw.shape[0] / SAMPLE_LEN)
                 # ^tell hmmlearn to split data in N_SENSORS(so probably 4) equal parts
-                self.model[class_name] = self.model[class_name].fit(X_raw , lengths)
 
+                self.train(X_raw)
 
-                filename = "models/hmm/%s_fold-%d__run%s.pkl" % (class_name, fold_index, RUN_ID)
-                print "Saving %s Model to %s" % (class_name, filename)
-                joblib.dump(model[class_name], filename)
+    def save(self):
+        filename = "models/hmm/%s_fold-%d__run%s.pkl" % (class_name, fold_index, RUN_ID)
+        print "Saving %s Model to %s" % (class_name, filename)
+        joblib.dump(model[class_name], filename)
 
 
     def evaluate(self):
