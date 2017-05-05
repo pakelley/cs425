@@ -42,6 +42,7 @@
 						<li><a href="#role_state" class="active">Role State</a></li>
 						<li><a href="#error_mode">Error Mode</a></li>
 						<li><a href="#sensor_data">Sensor Data</a></li>
+						<li><a href="#report">Generated Report</a></li>
 					</ul>
 				</nav>
 				<footer>
@@ -95,16 +96,25 @@
             <div class="container">
               <h3>Turbine sensor data</h3>
               <p>A display of the turbine's sensor data.</p>
-							<iframe id="eg" src="mX.html" name="targetframe" allowTransparency="true" scrolling="no" frameborder="0" width="400" height="400">
-							<iframe id="eg" src="oX.html" name="targetframe" allowTransparency="true" scrolling="no" frameborder="0" width="400" height="400">
-							<iframe id="eg" src="mY.html" name="targetframe" allowTransparency="true" scrolling="no" frameborder="0" width="400" height="400">
-							<iframe id="eg" src="oY.html" name="targetframe" allowTransparency="true" scrolling="no" frameborder="0" width="400" height="400">
-							<iframe id="eg" src="mO.html" name="targetframe" allowTransparency="true" scrolling="no" frameborder="0" width="400" height="400">
-							<iframe id="eg" src="OO.html" name="targetframe" allowTransparency="true" scrolling="no" frameborder="0" width="400" height="400">
+							<iframe id="mX" src="mX.html" name="targetframe" allowTransparency="true" scrolling="no" frameborder="0" width="400" height="400"> </iframe>
+							<iframe id="oX" src="oX.html" name="targetframe" allowTransparency="true" scrolling="no" frameborder="0" width="400" height="400"> </iframe>
+							<iframe id="mY" src="mY.html" name="targetframe" allowTransparency="true" scrolling="no" frameborder="0" width="400" height="400"> </iframe>
+							<iframe id="oY" src="oY.html" name="targetframe" allowTransparency="true" scrolling="no" frameborder="0" width="400" height="400"> </iframe>
+							<iframe id="mO" src="mO.html" name="targetframe" allowTransparency="true" scrolling="no" frameborder="0" width="400" height="400"> </iframe>
+							<iframe id="OO" src="OO.html" name="targetframe" allowTransparency="true" scrolling="no" frameborder="0" width="400" height="400"> </iframe>
 
             </div>
-
           </section>
+
+					<section id="report">
+            <div class="container">
+              <h3>Generated Report</h3>
+              <p>Document with confidence levels.</p>
+							<form method="get" action="report.pdf">
+									<button type="submit">Create Report</button>
+							</form>
+						</div>
+					</section>
       </div>
 
 				<!-- Footer -->
@@ -135,6 +145,12 @@
 			if(reload){
 			 	$('#rg').attr('src', $('#rg').attr('src'));
 			 	$('#eg').attr('src', $('#eg').attr('src'));
+				$('#mX').attr('src', $('#mX').attr('src'));
+			 	$('#oX').attr('src', $('#oX').attr('src'));
+				$('#mY').attr('src', $('#mY').attr('src'));
+			 	$('#oY').attr('src', $('#oY').attr('src'));
+				$('#mO').attr('src', $('#mO').attr('src'));
+			 	$('#oO').attr('src', $('#oO').attr('src'));
 		 }
 	}
 	</script>
