@@ -5,7 +5,6 @@ from sklearn.externals import joblib
 from sklearn.ensemble import RandomForestClassifier, ExtraTreesClassifier
 import datetime
 from random import uniform, seed
-from scipy.stats import mode
 seed(42)
 
 
@@ -139,7 +138,7 @@ class RF:
 
     def classify(self, cracked_data):
         probs = [None] * N_SENSORS
-        for s_id in range(N_SENSOR):
+        for s_id in range(N_SENSORS):
             # rf_pred = rf_clfs[s_id].predict(X[s_id][test])
             # et_pred = et_clfs[s_id].predict(X[s_id][test])
             probs[s_id] = np.random.rand(N_CLASSES)  # clf.predict_proba(cracked_data)
@@ -183,11 +182,11 @@ class RF:
             rf_total = [{}] * N_FOLDS
             et_total = [{}] * N_FOLDS
 
-            rf_pred = stats.mode(rf_preds).mode[0]
+            # rf_pred = stats.mode(rf_preds).mode[0]
             rf_total[fold_count]['conf_mat'] = confusion_matrix(y[s_id][test], rf_pred)
             rf_total[fold_count]['acc'] = np.mean(rf_pred == y[s_id][test])
 
-            et_pred = stats.mode(et_preds).mode[0]
+            # et_pred = stats.mode(et_preds).mode[0]
             et_total[fold_count]['conf_mat'] = confusion_matrix(y[0][test], et_pred)
             et_total[fold_count]['acc'] = np.mean(et_pred == y[0][test])
 
