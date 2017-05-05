@@ -6,7 +6,6 @@
 -->
 <html>
 
-<script src="assets/js/jquery-3.2.1.js"></script>
 <script src="assets/js/jquery.min.js"></script>
 <script src="assets/js/jquery.scrollzer.min.js"></script>
 <script src="assets/js/jquery.scrolly.min.js"></script>
@@ -96,12 +95,12 @@
             <div class="container">
               <h3>Turbine sensor data</h3>
               <p>A display of the turbine's sensor data.</p>
-							<iframe id="mX" src="mX.html" name="targetframe" allowTransparency="true" scrolling="no" frameborder="0" width="400" height="400"> </iframe>
+							<!--<iframe id="mX" src="mX.html" name="targetframe" allowTransparency="true" scrolling="no" frameborder="0" width="400" height="400"> </iframe>
 							<iframe id="oX" src="oX.html" name="targetframe" allowTransparency="true" scrolling="no" frameborder="0" width="400" height="400"> </iframe>
 							<iframe id="mY" src="mY.html" name="targetframe" allowTransparency="true" scrolling="no" frameborder="0" width="400" height="400"> </iframe>
-							<iframe id="oY" src="oY.html" name="targetframe" allowTransparency="true" scrolling="no" frameborder="0" width="400" height="400"> </iframe>
+							<iframe id="oY" src="oY.html" name="targetframe" allowTransparency="true" scrolling="no" frameborder="0" width="400" height="400"> </iframe> --->
 							<iframe id="mO" src="mO.html" name="targetframe" allowTransparency="true" scrolling="no" frameborder="0" width="400" height="400"> </iframe>
-							<iframe id="OO" src="OO.html" name="targetframe" allowTransparency="true" scrolling="no" frameborder="0" width="400" height="400"> </iframe>
+							<iframe id="oO" src="oO.html" name="targetframe" allowTransparency="true" scrolling="no" frameborder="0" width="400" height="400"> </iframe>
 
             </div>
           </section>
@@ -136,22 +135,24 @@
 	</body>
 
 
-	<script src="http://code.jquery.com/jquery-latest.min.js" type="text/javascript"></script>
 	<script language="javascript" type="text/javascript">
 
 	var timeout = setInterval(reloadGraph, 5000);
+
 	var reload = true;
 	function reloadGraph () {
 			if(reload){
-			 	$('#rg').attr('src', $('#rg').attr('src'));
+				$('#rg').attr('src', $('#rg').attr('src'));
 			 	$('#eg').attr('src', $('#eg').attr('src'));
-				$('#mX').attr('src', $('#mX').attr('src'));
-			 	$('#oX').attr('src', $('#oX').attr('src'));
-				$('#mY').attr('src', $('#mY').attr('src'));
-			 	$('#oY').attr('src', $('#oY').attr('src'));
+				//$('#mX').attr('src', $('#mX').attr('src'));
+			 	//$('#oX').attr('src', $('#oX').attr('src'));
+				//$('#mY').attr('src', $('#mY').attr('src'));
+			 	//$('#oY').attr('src', $('#oY').attr('src'));
 				$('#mO').attr('src', $('#mO').attr('src'));
 			 	$('#oO').attr('src', $('#oO').attr('src'));
+				//setTimeout(reloadGraph, 5000);
 		 }
+		 //reloadGraph()
 	}
 	</script>
 	<script>
