@@ -5,7 +5,7 @@ class Classifier:
     def __init__(self):
         #self.hmm   = HMM()
         self.svm   = SVM()
-        self.rf    = RF(filepath="algorithms/models/rf_demo")
+        self.rf    = RF(filepath='')
         self.bayes = Bayes()
         self.knn   = kNN()
 
@@ -31,16 +31,16 @@ class Classifier:
 
 
 
-FILENAME = "algorithms/data/combined_4-29.csv"
+# FILENAME = "algorithms/data/combined_4-29.csv"
 
-summ_data = np.genfromtxt(FILENAME, dtype=None, delimiter=',', names=True)
-cracked_data_str = np.array(summ_data['Cracked'])
-cracked_data = [cr_str.split('_') for cr_str in cracked_data_str]
+# summ_data = np.genfromtxt(FILENAME, dtype=None, delimiter=',', names=True)
+# cracked_data_str = np.array(summ_data['Cracked'])
+# cracked_data = [cr_str.split('_') for cr_str in cracked_data_str]
 # cracked_data = np.transpose(cracked_data, (1, 0))
-cracked_data = np.reshape(cracked_data, (-1, 2048, 4))
+# cracked_data = np.reshape(cracked_data, (-1, 2048, 4))
 
-c = Classifier()
-print c.classify(cracked_data, "RandomForest")
+# c = Classifier()
+# print c.classify(cracked_data, "RandomForest")
 # c.classify("other data", "unknown class") # Will raise an error
 # c.classify("other data", "hmm")           # Will raise an error
 
