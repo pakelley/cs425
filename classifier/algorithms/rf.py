@@ -71,22 +71,70 @@ class RF:
                      verbose           = VERBOSE,
                      class_names       = CONDITION_CLASSES):
         
-        self.rf_clfs = [RandomForestClassifier(n_estimators          = n_estimators,
-                                                   max_depth         = max_depth,
-                                                   min_samples_split = min_samples_split,
-                                                   random_state      = random_state,
-                                                   verbose           = verbose
-                                                   )] * N_SENSORS
-        
-        self.et_clfs = [ExtraTreesClassifier(n_estimators          = n_estimators,
-                                                 max_depth         = max_depth,
-                                                 min_samples_split = min_samples_split,
-                                                 random_state      = random_state,
-                                                 verbose           = verbose
-                                                 )] * N_SENSORS
+        self.class_names = class_names
+
+        # Either make blank classifiers for training, or read from file
+        if filepath != None:
+            self.rf_clfs = [None] * N_SENSORS
+            self.et_clfs = [None] * N_SENSORS
+            self.load(filepath)
+            print filepath
+
+        else:
+            self.rf_clfs = [
+                RandomForestClassifier(
+                    n_estimators=n_estimators,
+                    max_depth=max_depth,
+                    min_samples_split=min_samples_split,
+                    random_state=random_state,
+                    verbose=verbose)
+            ] * N_SENSORS
+
+            self.et_clfs = [
+                ExtraTreesClassifier(
+                    n_estimators=n_estimators,
+                    max_depth=max_depth,
+                    min_samples_split=min_samples_split,
+                    random_state=random_state,
+                    verbose=verbose)
+            ] * N_SENSORS
+
+    # Classify # TODO: add check for trained model
+    def classify(self, cracked_data):
+        probs = [None] * N_SENSORS
+        X = np.transpose(cracked_data, (2, 0, 1))  # N_SENSORS * N_SAMPLES * SAMPLE_SIZE
+        for s_id in range(N_SENSORS):
+            # rf_pred = rf_clfs[s_id].predict(X[s_id][test]) # FIXME: use both model types
+            et_pred = self.et_clfs[s_id].predict(X[s_id])
+            # probs[s_id] = np.random.rand(N_CLASSES)  # clf.predict_proba(cracked_data)
+            probs[s_id] = et_pred
+
+        # print probs
+        ens_probs = np.mean(probs, axis=1)
+        class_id = np.argmax(ens_probs, axis=0)
+        classification = self.class_names[class_id]
+
+        return {
+            "classification": classification,
+            "confidence_vec": list(ens_probs),
+            "class_names": self.class_names
+        }
+
+    def probs(self, X):
+        rf_probs = [None] * N_SENSORS
+        et_probs = [None] * N_SENSORS
+        for s_id in range(N_SENSORS):
+            rf_probs = self.rf_clfs[s_id].predict_proba(X[s_id])
+            et_probs = self.rf_clfs[s_id].predict_proba(X[s_id])
+
+        rf_ens_probs = np.argmax(rf_probs, axis=1)
+        et_ens_probs = np.argmax(et_probs, axis=1)
+
+        return rf_ens_probs, et_ens_probs
 
         self.class_names = class_names
 
+        return rf_decision, et_decision
 
     # X[s_id][train], y[s_id][train]
     def train(self, X, y):
@@ -135,45 +183,23 @@ class RF:
             joblib.dump(rf_clfs[s_id], "%s/rf_s%d.pkl" % (path, s_id))
             print "Saving Extra Trees Model"
             joblib.dump(et_clfs[s_id], "%s/et_s%d.pkl" % (path, s_id))
-    
 
-    def classify(self, cracked_data):
-        probs = [None] * N_SENSORS
-        for s_id in range(N_SENSOR):
-            # rf_pred = rf_clfs[s_id].predict(X[s_id][test])
-            # et_pred = et_clfs[s_id].predict(X[s_id][test])
-            probs[s_id] = np.random.rand(N_CLASSES)  # clf.predict_proba(cracked_data)
-            
-        # print probs
-        ens_probs = np.mean(probs, axis=0)
-        classification = np.argmax(ens_probs, axis=0)
-        
-        
-        return {
-            "classification": classification,
-            "confidence_vec": { k:v for k,v in (zip(self.class_names, ens_probs)) }
-            }
 
-    
     def evaluate(self, X, y):
-        (et_probs, rf_probs) = self.classify(X)
-
-         
-    def detailed_evaluate(self):
         rf_outputs = [{}] * N_SENSORS
         et_outputs = [{}] * N_SENSORS
         
         precision, recall = prec_rec(rf_pred, y[s_id][test])
         rf_outputs[s_id]['precision'] = precision
-        rf_outputs[s_id]['recall'] = recall
-        rf_outputs[s_id]['conf_mat'] = confusion_matrix(y[s_id][test], rf_pred)
-        rf_outputs[s_id]['acc'] = np.mean(rf_pred == y[s_id][test])
-        
-        precision, recall = prec_rec(et_pred, y[s_id][test])
+        rf_outputs[s_id]['recall']    = recall
+        rf_outputs[s_id]['conf_mat']  = confusion_matrix(y[s_id][test], rf_pred)
+        rf_outputs[s_id]['acc']       = np.mean(rf_pred == y[s_id][test])
+
+        precision, recall             = prec_rec(et_pred, y[s_id][test])
         et_outputs[s_id]['precision'] = precision
-        et_outputs[s_id]['recall'] = recall
-        et_outputs[s_id]['conf_mat'] = confusion_matrix(y[s_id][test], et_pred)
-        et_outputs[s_id]['acc'] = np.mean(et_pred == y[s_id][test])
+        et_outputs[s_id]['recall']    = recall
+        et_outputs[s_id]['conf_mat']  = confusion_matrix(y[s_id][test], et_pred)
+        et_outputs[s_id]['acc']       = np.mean(et_pred == y[s_id][test])
 
         return rf_outputs, et_outputs
         
@@ -239,3 +265,22 @@ scores = []
 skf = StratifiedKFold(n_splits=N_FOLDS, random_state=42)
 # Note here that we're getting one fold mask to be used for all sensors(for sensor agreement)
 
+# rf = RF()
+# X, y = rf.read_data()
+# rf.train(X,y)
+# rf_d, et_d = rf.evaluate(X,y)
+# rf_preds = [None] * N_SENSORS
+
+# rt_p, et_p = rf.probs(X)
+# print (sum(rt_p == y) * 1.0) / rt_p.shape[0]
+
+def gen_clf(X, y):
+    rf = RF()
+    rf.train(X,y)
+    return rf
+
+def gen_data_clf():
+    rf = RF()
+    X, y = rf.read_data()
+    rf.train(X,y)
+    return X, y, rf
