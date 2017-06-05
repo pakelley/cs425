@@ -161,17 +161,17 @@ class RF:
         X = np.transpose(cracked_data, (2, 0, 1) )
         for s_id in range(N_SENSORS):
             # rf_pred = rf_clfs[s_id].predict(X[s_id][test])
-            et_pred = self.et_clfs[s_id].predict(X[s_id])
+            # et_pred = self.et_clfs[s_id].predict(X[s_id], verbose=False)
             et_probs[s_id] = self.et_clfs[s_id].predict_proba(X[s_id])
             # probs[s_id] = np.random.rand(N_CLASSES)  # clf.predict_proba(cracked_data)
-            probs[s_id] = et_pred
+            # probs[s_id] = et_pred
 
         #print probs
-        ens_probs = np.mean(probs, axis=1)
+        # ens_probs = np.mean(probs, axis=1)
         et_tot_probs = np.mean( np.mean(et_probs, axis=1) , axis=0)
-        class_id = np.argmax(ens_probs, axis=0)
+        class_id = np.argmax(et_tot_probs, axis=0)
         classification = self.class_names[class_id]
-        print et_tot_probs
+        # print et_tot_probs
 
         return {
             "classification_name": classification,
@@ -203,12 +203,12 @@ class RF:
             joblib.dump(self.rf_clfs[s_id], rf_filename)
             print "Saving Extra Trees Model"
             joblib.dump(self.et_clfs[s_id], "%s/et_%s_s%d.pkl" % (path, RUN_ID,
+                                                                  s_id))
             #rf_filename = "rf_s%d.pkl"  % (s_id)
             #print "Saving Random Forest Model from %s" % rf_filename
             #self.rf_clfs[s_id] = joblib.load(rf_filename)
             print "Saving Extra Trees Model"
-            self.et_clfs[s_id] = joblib.load(os.path.abspath("classifier\\et_s%d.pkl" % (s_id)))
-                                                                  s_id))
+            self.et_clfs[s_id] = joblib.load(os.path.abspath("models/rf_demo/et_s%d.pkl" % (s_id)))
 
     def load(self, path):
         for s_id in range(N_SENSORS):
