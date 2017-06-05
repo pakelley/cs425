@@ -13,6 +13,50 @@ from reportlab.lib.pagesizes import letter
 
 import io
 
+def condToList(dictVec):
+
+	#designate structure
+	arr = []
+	arr.append([])
+	arr.append([])
+	
+	#set data
+	arr[0].append("Classifier name")
+	arr[0].append("Rub")
+	arr[0].append("Preload")
+	arr[0].append("Bearing Rub")
+	arr[0].append("Safe")
+
+	arr[1].append(dictVec["classifier_name"])
+	arr[1].append(dictVec["rub"])
+	arr[1].append(dictVec["preload"])
+	arr[1].append(dictVec["bearing_rub"])
+	arr[1].append(dictVec["safe"])
+	
+	return arr
+
+def rollToList(dictVec):
+
+	#designate structure
+	arr = []
+	arr.append([])
+	arr.append([])
+	
+	#set data
+	arr[0].append("Classifier Name")
+	arr[0].append("Slow Roll")
+	arr[0].append("Ramp Up")
+	arr[0].append("Ramp Down")
+	arr[0].append("Fast Roll")
+
+	arr[1].append(dictVec["classifier_name"])
+	arr[1].append(dictVec["slow_roll"])
+	arr[1].append(dictVec["ramp_up"])
+	arr[1].append(dictVec["ramp_down"])
+	arr[1].append(dictVec["fast_roll"])
+	
+	return arr
+
 def producePivot(condVec,rollVec):
 
 	#initialize
@@ -24,7 +68,7 @@ def producePivot(condVec,rollVec):
 	#initialize top row and find safe state column
 	safeCol = 0
 	for cond in condVec[0]:
-		if (cond is "Normal") or (cond is "normal"):
+		if (cond is "Safe") or (cond is "safe"):
 			safeCol = len(pivotTable[0])
 			pivotTable[0].append("Unsafe")
 
@@ -51,11 +95,11 @@ def producePivot(condVec,rollVec):
 			for cond in condVec[1]:
 				if not isinstance(cond,basestring):
 					if not (safeCol is (len(pivotTable[row]))):
-						unsafeTotal += cond * roll 					
-						pivotTable[row].append( (cond * roll) )
+						unsafeTotal += cond * roll / 100.0					
+						pivotTable[row].append( (cond * roll) / 100.00 )
 					else:
 						pivotTable[row].append(unsafeTotal)
-						pivotTable[row].append((cond * roll))
+						pivotTable[row].append((cond * roll)/ 100.00)
 
 			row += 1
 			
@@ -70,7 +114,12 @@ def producePivot(condVec,rollVec):
 	return pivotTable
 					
 
-def writeReport(fileNames,condVec,rollVec,simplify):
+def writeReport(fileNames,condDict,rollDict,simplify):
+
+	#convert dictionaries to list format
+	condVec = condToList(condDict)
+	rollVec = rollToList(rollDict)
+	
 	buf = io.BytesIO()
 
 	doc = SimpleDocTemplate(
@@ -99,7 +148,7 @@ def writeReport(fileNames,condVec,rollVec,simplify):
 		#create table for both rows and columns
 		rcVec = []
 		index = 0
-		totalRows = max(len(rollVec[0]),len(condVec[0]))+1
+		totalRows = max(len(rollVec[0]),len(condVec[0]))
 		rSplit = len(rollVec)-1
 		cSplit = len(condVec)-1
 		
@@ -126,7 +175,7 @@ def writeReport(fileNames,condVec,rollVec,simplify):
 		for row in condVec:
 			rcVec.append([])
 			if index == start:
-				rcVec[index].append("Condition States")
+				rcVec[index].append("Error Modes")
 			else:
 				rcVec[index].append("")			
 			for data in row:
@@ -212,9 +261,11 @@ def writeReport(fileNames,condVec,rollVec,simplify):
 		
 		
 #test program
-condVec = [["Classifier Name","rub","preload","outer bearing","inner bearing","Safe"],
-		["Confidence Level",12.5,12.5,37.5,25,12.5]]
-rollVec = [["Classifier Name","slow roll","ramp up","ramp down"],
-		["Confidence Level",12.5,12.5,75]]
-fNames = ["motorside_orbit.png","motorside_x.png","motorside_y.png"]
+#condVec = {"classifier_name": "Confidence Level","rub":20,"preload":30,"bearing_rub": 40, "safe": 50}
+#rollVec = {"classifier_name": "Confidence Level", "slow_roll":10, "ramp_up":20, "ramp_down": 30, "fast_roll":50 }
+#condVec = [["Classifier Name","rub","preload","outer bearing","inner bearing","Normal"],
+#		["Confidence Level",12.5,12.5,37.5,25,12.5]]
+#rollVec = [["Classifier Name","slow roll","ramp up","ramp down"],
+#		["Confidence Level",12.5,12.5,75]]
+#fNames = ["motorside_orbit.png","motorside_x.png","motorside_y.png"]
 #writeReport(fNames,condVec,rollVec,False)
