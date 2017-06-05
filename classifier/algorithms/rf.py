@@ -172,12 +172,13 @@ class RF:
         class_id = np.argmax(ens_probs, axis=0)
         classification = self.class_names[class_id]
         print et_tot_probs
-        #print classification
 
         return {
-            "classification": classification,
-            "confidence_vec": list(et_tot_probs),
-            "class_names":    self.class_names
+            "classification_name": classification,
+            "unbalance": et_tot_probs[1],
+            "preload": et_tot_probs[2],
+            "bearing_rub": et_tot_probs[3],
+            "safe": et_tot_probs[0]
             }
 
 
