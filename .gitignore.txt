@@ -1,0 +1,6 @@
+*.png
+*.pdf
+classifier/algorithms/*.pkl
+classifier/*pkl
+errorGraph.html
+rallGraph.html
