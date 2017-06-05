@@ -21,14 +21,14 @@ def condToList(dictVec):
 	arr.append([])
 	
 	#set data
-	arr[0].append("Classifier name")
-	arr[0].append("Rub")
+	arr[0].append("Classification name")
+	arr[0].append("Unbalance")
 	arr[0].append("Preload")
 	arr[0].append("Bearing Rub")
 	arr[0].append("Safe")
 
-	arr[1].append(dictVec["classifier_name"])
-	arr[1].append(dictVec["rub"])
+	arr[1].append(dictVec["classification_name"])
+	arr[1].append(dictVec["unbalance"])
 	arr[1].append(dictVec["preload"])
 	arr[1].append(dictVec["bearing_rub"])
 	arr[1].append(dictVec["safe"])
@@ -43,13 +43,13 @@ def rollToList(dictVec):
 	arr.append([])
 	
 	#set data
-	arr[0].append("Classifier Name")
+	arr[0].append("Classification Name")
 	arr[0].append("Slow Roll")
 	arr[0].append("Ramp Up")
 	arr[0].append("Ramp Down")
 	arr[0].append("Fast Roll")
 
-	arr[1].append(dictVec["classifier_name"])
+	arr[1].append(dictVec["classification_name"])
 	arr[1].append(dictVec["slow_roll"])
 	arr[1].append(dictVec["ramp_up"])
 	arr[1].append(dictVec["ramp_down"])
@@ -261,8 +261,8 @@ def writeReport(fileNames,condDict,rollDict,simplify):
 		
 		
 #test program
-#condVec = {"classifier_name": "Confidence Level","rub":20,"preload":30,"bearing_rub": 40, "safe": 50}
-#rollVec = {"classifier_name": "Confidence Level", "slow_roll":10, "ramp_up":20, "ramp_down": 30, "fast_roll":50 }
+#condVec = {"classification_name": "Confidence Level","unbalance":20,"preload":30,"bearing_rub": 40, "safe": 50}
+#rollVec = {"classification_name": "Confidence Level", "slow_roll":10, "ramp_up":20, "ramp_down": 30, "fast_roll":50 }
 #condVec = [["Classifier Name","rub","preload","outer bearing","inner bearing","Normal"],
 #		["Confidence Level",12.5,12.5,37.5,25,12.5]]
 #rollVec = [["Classifier Name","slow roll","ramp up","ramp down"],
