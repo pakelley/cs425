@@ -95,11 +95,11 @@ def producePivot(condVec,rollVec):
 			for cond in condVec[1]:
 				if not isinstance(cond,basestring):
 					if not (safeCol is (len(pivotTable[row]))):
-						unsafeTotal += cond * roll / 100.0					
-						pivotTable[row].append( (cond * roll) / 100.00 )
+						unsafeTotal += cond * roll 					
+						pivotTable[row].append( (cond * roll) )
 					else:
 						pivotTable[row].append(unsafeTotal)
-						pivotTable[row].append((cond * roll)/ 100.00)
+						pivotTable[row].append((cond * roll))
 
 			row += 1
 			
@@ -148,7 +148,7 @@ def writeReport(fileNames,condDict,rollDict,simplify):
 		#create table for both rows and columns
 		rcVec = []
 		index = 0
-		totalRows = max(len(rollVec[0]),len(condVec[0]))
+		totalRows = max(len(rollVec[0]),len(condVec[0]))+1
 		rSplit = len(rollVec)-1
 		cSplit = len(condVec)-1
 		
@@ -175,7 +175,7 @@ def writeReport(fileNames,condDict,rollDict,simplify):
 		for row in condVec:
 			rcVec.append([])
 			if index == start:
-				rcVec[index].append("Error Modes")
+				rcVec[index].append("Condition States")
 			else:
 				rcVec[index].append("")			
 			for data in row:
@@ -269,3 +269,4 @@ def writeReport(fileNames,condDict,rollDict,simplify):
 #		["Confidence Level",12.5,12.5,75]]
 #fNames = ["motorside_orbit.png","motorside_x.png","motorside_y.png"]
 #writeReport(fNames,condVec,rollVec,False)
+
