@@ -4,7 +4,6 @@ import numpy as np
 import matplotlib.pyplot as plt
 import pickle
 import random
-from scipy import stats
 from sklearn.model_selection import cross_val_score, StratifiedKFold
 from sklearn.metrics import confusion_matrix
 from sklearn.externals import joblib

@@ -5,7 +5,7 @@ from sklearn.externals import joblib
 from sklearn.ensemble import RandomForestClassifier, ExtraTreesClassifier
 import datetime
 from random import uniform, seed
-from scipy.stats import mode
+import os
 seed(42)
 
 #############################################################
@@ -32,7 +32,8 @@ BOT_THRESH        = 600
 #############################################################
 ######################### Functions #########################
 #############################################################
-from parse_csv import parse_s1_csv
+# from parse_csv import parse_s1_csv
+
 
 
 def prec_rec(pred, truth):
@@ -113,13 +114,17 @@ N_FOLDS           = 5
 ########################### Main ############################
 #############################################################
 class RF:
-    def __init__(self, n_estimators    = N_ESTIMATORS,
-                     max_depth         = MAX_DEPTH,
-                     min_samples_split = MIN_SAMPLES_SPLIT,
-                     random_state      = RANDOM_STATE,
-                     verbose           = VERBOSE,
-                     class_names       = CONDITION_CLASSES):
-        
+
+    # Constructor
+    def __init__(self,
+                 n_estimators=N_ESTIMATORS,
+                 max_depth=MAX_DEPTH,
+                 min_samples_split=MIN_SAMPLES_SPLIT,
+                 random_state=RANDOM_STATE,
+                 verbose=VERBOSE,
+                 class_names=CONDITION_CLASSES,
+                 filepath=None):
+
         self.class_names = class_names
 
         # Either make blank classifiers for training, or read from file
@@ -151,23 +156,29 @@ class RF:
     # Classify # TODO: add check for trained model
     def classify(self, cracked_data):
         probs = [None] * N_SENSORS
-        X = np.transpose(cracked_data, (2, 0, 1))  # N_SENSORS * N_SAMPLES * SAMPLE_SIZE
+        et_probs = [None] * N_SENSORS
+        #print cracked_data.shape
+        X = np.transpose(cracked_data, (2, 0, 1) )
         for s_id in range(N_SENSORS):
-            # rf_pred = rf_clfs[s_id].predict(X[s_id][test]) # FIXME: use both model types
+            # rf_pred = rf_clfs[s_id].predict(X[s_id][test])
             et_pred = self.et_clfs[s_id].predict(X[s_id])
+            et_probs[s_id] = self.et_clfs[s_id].predict_proba(X[s_id])
             # probs[s_id] = np.random.rand(N_CLASSES)  # clf.predict_proba(cracked_data)
             probs[s_id] = et_pred
 
-        # print probs
+        #print probs
         ens_probs = np.mean(probs, axis=1)
+        et_tot_probs = np.mean( np.mean(et_probs, axis=1) , axis=0)
         class_id = np.argmax(ens_probs, axis=0)
         classification = self.class_names[class_id]
+        print et_tot_probs
+        #print classification
 
         return {
             "classification": classification,
-            "confidence_vec": list(ens_probs),
-            "class_names": self.class_names
-        }
+            "confidence_vec": list(et_tot_probs),
+            "class_names":    self.class_names
+            }
 
 
     def probs(self, X):
@@ -182,9 +193,30 @@ class RF:
 
         return rf_ens_probs, et_ens_probs
 
-        self.class_names = class_names
 
-        return rf_decision, et_decision
+    # models/rf/%s/fold%d % (RUN_ID, fold_count)
+    def save(self, path):
+        for s_id in range(N_SENSORS):
+            rf_filename = "%s/rf_%s_s%d.pkl" % (path, RUN_ID, s_id)
+            print "Saving Random Forest Model to %s" % rf_filename
+            joblib.dump(self.rf_clfs[s_id], rf_filename)
+            print "Saving Extra Trees Model"
+            joblib.dump(self.et_clfs[s_id], "%s/et_%s_s%d.pkl" % (path, RUN_ID,
+            #rf_filename = "rf_s%d.pkl"  % (s_id)
+            #print "Saving Random Forest Model from %s" % rf_filename
+            #self.rf_clfs[s_id] = joblib.load(rf_filename)
+            print "Saving Extra Trees Model"
+            self.et_clfs[s_id] = joblib.load(os.path.abspath("classifier\\et_s%d.pkl" % (s_id)))
+                                                                  s_id))
+
+    def load(self, path):
+        for s_id in range(N_SENSORS):
+            rf_filename = "%s/rf_s%d.pkl" % (path, s_id)
+            print "Saving Random Forest Model from %s" % rf_filename
+            self.rf_clfs[s_id] = joblib.load(rf_filename)
+            print "Saving Extra Trees Model"
+            joblib.dump(et_clfs[s_id], "%s/et_s%d.pkl" % (path, s_id))
+
 
     # X[s_id][train], y[s_id][train]
     def train(self, X, y):
@@ -193,10 +225,10 @@ class RF:
         for s_id in xrange(N_SENSORS):
             print "### Training on sensor id %d ###" % s_id
 
-            self.rf_clfs[s_id] = self.rf_clfs[s_id].fit(X[s_id], y[s_id])
-            self.et_clfs[s_id] = self.et_clfs[s_id].fit(X[s_id], y[s_id])
+            self.rf_clfs[s_id] = self.rf_clfs[s_id].fit(X[s_id], y)
+            self.et_clfs[s_id] = self.et_clfs[s_id].fit(X[s_id], y)
 
-        self.save(rf_clfs, et_clss)
+        self.save("./models/rf")
 
 
     def read_data(self):
@@ -260,23 +292,12 @@ class RF:
         y = cond_classes
         return X, y
 
-    # models/rf/%s/fold%d % (RUN_ID, fold_count)
-    def save(self, path):
-        for s_id in range(N_SENSORS):
-            rf_filename = "%s/rf_%s_s%d.pkl" % (path, RUN_ID, s_id)
-            print "Saving Random Forest Model to %s" % rf_filename
-            joblib.dump(self.rf_clfs[s_id], rf_filename)
-            print "Saving Extra Trees Model"
 
-
-
-    def load(self, path):
-        for s_id in range(N_SENSORS):
-            rf_filename = "%s/rf_s%d.pkl" % (path, s_id)
-            print "Saving Random Forest Model from %s" % rf_filename
-            self.rf_clfs[s_id] = joblib.load(rf_filename)
-            print "Saving Extra Trees Model"
-            joblib.dump(et_clfs[s_id], "%s/et_s%d.pkl" % (path, s_id))
+    def simple_evaluate(self, X, y):
+        (et_probs, rf_probs) = self.probs(X)
+        rf_decision = np.argmax(rf_probs)
+        et_decision = np.argmax(et_probs)
+        return rf_decision, et_decision
 
 
     def evaluate(self, X, y):
@@ -353,17 +374,7 @@ class RF:
         return rf_scores, et_scores
 
 
-# Evaluate models with respect to n_estimators
-scores = []
-
-skf = StratifiedKFold(n_splits=N_FOLDS, random_state=42)
-# Note here that we're getting one fold mask to be used for all sensors(for sensor agreement)
-
-# rf = RF()
-# X, y = rf.read_data()
-# rf.train(X,y)
-# rf_d, et_d = rf.evaluate(X,y)
-# rf_preds = [None] * N_SENSORS
+# skf = StratifiedKFold(n_splits=N_FOLDS, random_state=42)
 
 # rt_p, et_p = rf.probs(X)
 # print (sum(rt_p == y) * 1.0) / rt_p.shape[0]

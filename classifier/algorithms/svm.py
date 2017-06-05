@@ -1,6 +1,5 @@
 import random
 import numpy as np
-from scipy import stats
 import matplotlib.pyplot as plt
 from sklearn import datasets, svm
 from sklearn.model_selection import cross_val_score, StratifiedKFold
@@ -25,7 +24,7 @@ class SVM:
 
     def train():
         # Read in data
-        from parse_csv import parse_s1_csv
+        ''' from parse_csv import parse_s1_csv '''
         # DATA_CSV = "../AllFromMarchDataPatrick.csv"
         # DATA_CSV = "../Data_Normal_4_3_17.csv"
         # DATA_CSV = "../data/combined_allClasses_test.csv"
@@ -85,7 +84,7 @@ class SVM:
 
 
 
-            svm_pred = stats.mode(svm_preds).mode[0]
+            # svm_pred = stats.mode(svm_preds).mode[0]
             svm_totals[fold_index]['conf_mat'] = confusion_matrix(y[s_id][test], svm_pred)
             svm_totals[fold_index]['acc'] = np.mean(svm_pred == y[s_id][test])
 
