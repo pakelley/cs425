@@ -4,7 +4,7 @@
   <link type="text/css" rel="stylesheet" href="http://ajax.googleapis.com/ajax/libs/jqueryui/1.8/themes/base/jquery-ui.css">
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.6.2/jquery.min.js"></script>
   <script>
-    jQuery.noConflict();
+    //jQuery.noConflict();
   </script>
 
   <link type="text/css" rel="stylesheet" href="src/rickshaw.min.css" >
@@ -31,7 +31,7 @@
 </head>
 <body>
 
-				
+
 
 <div id="content">
 
@@ -202,14 +202,14 @@ var roll = new Rickshaw.Graph( {
   element: document.getElementById("r_chart"),
   width: 900,
   height: 500,
-  renderer: 'area',
+  renderer: 'line',
   stroke: true,
   preserve: true,
   series: [
     {
       color: palette.color(),
       data: [],
-      name: 'Ramp-Up'
+      name: 'Fast-Roll'
     }, {
       color: palette.color(),
       data: [],
@@ -217,11 +217,11 @@ var roll = new Rickshaw.Graph( {
     }, {
       color: palette.color(),
       data: [],
-      name: 'Slow-Roll'
+      name: 'Ramp-Up'
     }, {
       color: palette.color(),
       data: [],
-      name: 'Fast-Roll'
+      name: 'Slow-Roll'
     }
   ]
 });
@@ -230,26 +230,26 @@ var error = new Rickshaw.Graph( {
   element: document.getElementById("e_chart"),
   width: 900,
   height: 500,
-  renderer: 'area',
+  renderer: 'line',
   stroke: true,
   preserve: true,
   series: [
     {
       color: palette.color(),
       data: [],
-      name: 'Ramp-Up'
+      name: 'Bearing Rub'
     }, {
       color: palette.color(),
       data: [],
-      name: 'Ramp-Down'
+      name: 'Preload'
     }, {
       color: palette.color(),
       data: [],
-      name: 'Slow-Roll'
+      name: 'Safe'
     }, {
       color: palette.color(),
       data: [],
-      name: 'Fast-Roll'
+      name: 'Weight Unbalance'
     }
   ]
 });
@@ -370,12 +370,12 @@ var e_init = function() {
     graph: error
   } );
 
- 
+
   // add some data every so often
 };
 new Rickshaw.Fixtures.PubNub({
   subscribe_key: 'sub-c-90fcb4bc-4a41-11e7-8e91-0619f8945a4f',
-  channel: 'rickshaw',
+  channel: 'rollState',
   history: true,
   graph: roll,
   connect: r_init,
@@ -384,7 +384,7 @@ new Rickshaw.Fixtures.PubNub({
 
 new Rickshaw.Fixtures.PubNub({
   subscribe_key: 'sub-c-90fcb4bc-4a41-11e7-8e91-0619f8945a4f',
-  channel: 'rickshaw',
+  channel: 'errorState',
   history: true,
   graph: error,
   connect: e_init,
@@ -396,20 +396,10 @@ new Rickshaw.Fixtures.PubNub({
 	<script language="javascript" type="text/javascript">
 
 	var timeout = setInterval(reloadGraph, 5000);
-
-	var reload = true;
 	function reloadGraph () {
-			if(reload){
-				$('#rg').attr('src', $('#rg').attr('src'));
-			 	$('#eg').attr('src', $('#eg').attr('src'));
-				//$('#mX').attr('src', $('#mX').attr('src'));
-			 	//$('#oX').attr('src', $('#oX').attr('src'));
-				//$('#mY').attr('src', $('#mY').attr('src'));
-			 	//$('#oY').attr('src', $('#oY').attr('src'));
 				$('#mO').attr('src', $('#mO').attr('src'));
 			 	$('#oO').attr('src', $('#oO').attr('src'));
 				//setTimeout(reloadGraph, 5000);
-		 }
 		 //reloadGraph()
 	}
 	</script>

@@ -5,6 +5,18 @@ import numpy as np
 import collections
 import matplotlib.pyplot as plt
 import time
+import datetime
+from pubnub.pnconfiguration import PNConfiguration
+from pubnub.pubnub import PubNub
+from pubnub.enums import PNStatusCategory
+from pubnub.callbacks import SubscribeCallback
+
+
+pnconfig = PNConfiguration()
+pnconfig.publish_key = "pub-c-358edb35-cf1f-4063-97e5-5d174ba1c10e"
+pnconfig.subscribe_key = "sub-c-90fcb4bc-4a41-11e7-8e91-0619f8945a4f"
+
+pubnub = PubNub(pnconfig)
 
 class GraphGen:
     def __init__(self):
@@ -33,19 +45,19 @@ class GraphGen:
             self.y_roll = self.y_roll[1:]
             self.y_error = self.y_error[1:]
         self.sensorData = sensorData.T
-        
+
         timeNow = datetime.datetime.now()
         timeNextQuery = timeNow + datetime.timedelta(seconds=1)
         delta = datetime.datetime.utcnow() - datetime.datetime(1970, 1, 1)
         mSecs = (int) (delta.total_seconds())
-        roll_data = {'x':mSecs, 'y':y_roll[index]}
-        error_data = {'x':mSecs, 'y':y_error[index]}
-        
+        roll_data = {'x':mSecs, 'y':self.y_roll[min(self.index-1,24)]}
+        error_data = {'x':mSecs, 'y':self.y_error[min(self.index-1,24)]}
+
         pubnub.publish().channel("rollState").message(roll_data).should_store(True).use_post(False).sync()
         pubnub.publish().channel("errorState").message(error_data).should_store(True).use_post(False).sync()
         #self.genRollGraph()
         #self.genErrorGraph()
-        
+
         self.genSensorGraph()
     def genRollGraph(self):
 
@@ -89,7 +101,7 @@ class GraphGen:
         plt.title("Motor-Side X Plot", size = 18)
         plt.ylabel("x distance from sensor (mils)", size = 14);
         plt.xlabel("iterations", size = 14);
-        
+
         output = mpld3.fig_to_html(fig1)
         with open('mX.html', 'w') as f:
             f.write(output)
@@ -103,7 +115,7 @@ class GraphGen:
         plt.title("Motor-Side Y Plot", size = 18)
         plt.ylabel("y distance from sensor (mils)", size = 14);
         plt.xlabel("iterations", size = 14);
-        
+
         output = mpld3.fig_to_html(fig2)
         with open('mY.html', 'w') as f:
             f.write(output)
@@ -116,7 +128,7 @@ class GraphGen:
         plt.title("Motor-Side Orbit Plot", size = 18)
         plt.ylabel("y distance from sensor (mils)", size = 14);
         plt.xlabel("x distance from sensor (mils)", size = 14);
-        
+
         output = mpld3.fig_to_html(fig3, d3_url='assets/js/d3.v3.min.js', mpld3_url='assets/js/mpld3.js')
         with open('mO.html', 'w') as f:
             f.write(output)
@@ -145,7 +157,7 @@ class GraphGen:
         plt.ylabel("y distance from sensor (mils)", size = 14);
         plt.xlabel("iterations", size = 14);
 
-        
+
         output = mpld3.fig_to_html(fig5)
         with open('oY.html', 'w') as f:
             f.write(output)
