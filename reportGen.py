@@ -27,7 +27,7 @@ def condToList(dictVec):
 	arr[0].append("Bearing Rub")
 	arr[0].append("Safe")
 
-	arr[1].append(dictVec["classification_name"])
+	arr[1].append("Confidence Level")
 	arr[1].append(dictVec["unbalance"])
 	arr[1].append(dictVec["preload"])
 	arr[1].append(dictVec["bearing_rub"])
@@ -49,7 +49,7 @@ def rollToList(dictVec):
 	arr[0].append("Ramp Down")
 	arr[0].append("Fast Roll")
 
-	arr[1].append(dictVec["classification_name"])
+	arr[1].append("Confidence Level")
 	arr[1].append(dictVec["slow_roll"])
 	arr[1].append(dictVec["ramp_up"])
 	arr[1].append(dictVec["ramp_down"])
@@ -95,11 +95,11 @@ def producePivot(condVec,rollVec):
 			for cond in condVec[1]:
 				if not isinstance(cond,basestring):
 					if not (safeCol is (len(pivotTable[row]))):
-						unsafeTotal += cond * roll / 100.0					
-						pivotTable[row].append( (cond * roll) / 100.00 )
+						unsafeTotal += cond * roll					
+						pivotTable[row].append( (cond * roll) )
 					else:
 						pivotTable[row].append(unsafeTotal)
-						pivotTable[row].append((cond * roll)/ 100.00)
+						pivotTable[row].append((cond * roll))
 
 			row += 1
 			
@@ -145,10 +145,18 @@ def writeReport(fileNames,condDict,rollDict,simplify):
 				resizedImage.save("temp" + str(index) + ".png", "png")
 				index += 1
 
+					   
+		#produce pivot table
+		pVec = producePivot(condVec,rollVec)					
+
+		#remove safe state from list of error states
+		del condVec[0][-1]
+		del condVec[1][-1]
+		
 		#create table for both rows and columns
 		rcVec = []
 		index = 0
-		totalRows = max(len(rollVec[0]),len(condVec[0]))
+		totalRows = max(len(rollVec[0]),len(condVec[0])) + 1
 		rSplit = len(rollVec)-1
 		cSplit = len(condVec)-1
 		
@@ -183,7 +191,7 @@ def writeReport(fileNames,condDict,rollDict,simplify):
 			for cell in range(len(rcVec[index]),totalRows):
 				rcVec[index].append("")
 			index += 1
-									
+			
 		#create reportlab table
 		emptyCStart = len(condVec[0])
 		emptyRStart = len(rollVec[0])
@@ -195,9 +203,6 @@ def writeReport(fileNames,condDict,rollDict,simplify):
                        ('BOX', (0,1), (rSplit,emptyRStart), 0.25, colors.black),
 					   ('BOX', (-1-cSplit,1), (-1,emptyCStart), 0.25, colors.black)
                        ]))
-					   
-		#produce pivot table
-		pVec = producePivot(condVec,rollVec)	
 		
 		#set up table for pdf
 		pData = Table(pVec,hAlign='CENTER')
@@ -217,7 +222,7 @@ def writeReport(fileNames,condDict,rollDict,simplify):
 		sections = []
 		
 		#add title
-		sections.append(	Paragraph("<br/><br/>  Turbine Condition Report - " + 
+		sections.append(	Paragraph("<br/>  Turbine Condition Report - " + 
 			datetime.datetime.fromtimestamp(time.time()).strftime('%Y/%m/%d %H:%M:%S') + 
 			"<br/><br/><br/>", 
 			styles['modTitle'])	)
@@ -261,11 +266,11 @@ def writeReport(fileNames,condDict,rollDict,simplify):
 		
 		
 #test program
-#condVec = {"classification_name": "Confidence Level","unbalance":20,"preload":30,"bearing_rub": 40, "safe": 50}
-#rollVec = {"classification_name": "Confidence Level", "slow_roll":10, "ramp_up":20, "ramp_down": 30, "fast_roll":50 }
+condVec = {"classification_name": "Confidence Level","unbalance":0.20,"preload":0.30,"bearing_rub": 0.40, "safe": 0.10}
+rollVec = {"classification_name": "Confidence Level", "slow_roll":0.10, "ramp_up":0.20, "ramp_down": 0.30, "fast_roll":0.40 }
 #condVec = [["Classifier Name","rub","preload","outer bearing","inner bearing","Normal"],
 #		["Confidence Level",12.5,12.5,37.5,25,12.5]]
 #rollVec = [["Classifier Name","slow roll","ramp up","ramp down"],
 #		["Confidence Level",12.5,12.5,75]]
-#fNames = ["motorside_orbit.png","motorside_x.png","motorside_y.png"]
-#writeReport(fNames,condVec,rollVec,False)
+fNames = ["motorside_orbit.png","motorside_x.png","motorside_y.png"]
+writeReport(fNames,condVec,rollVec,False)
