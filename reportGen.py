@@ -266,11 +266,11 @@ def writeReport(fileNames,condDict,rollDict,simplify):
 		
 		
 #test program
-condVec = {"classification_name": "Confidence Level","unbalance":0.20,"preload":0.30,"bearing_rub": 0.40, "safe": 0.10}
-rollVec = {"classification_name": "Confidence Level", "slow_roll":0.10, "ramp_up":0.20, "ramp_down": 0.30, "fast_roll":0.40 }
+#condVec = {"classification_name": "Confidence Level","unbalance":0.20,"preload":0.30,"bearing_rub": 0.40, "safe": 0.10}
+#rollVec = {"classification_name": "Confidence Level", "slow_roll":0.10, "ramp_up":0.20, "ramp_down": 0.30, "fast_roll":0.40 }
 #condVec = [["Classifier Name","rub","preload","outer bearing","inner bearing","Normal"],
 #		["Confidence Level",12.5,12.5,37.5,25,12.5]]
 #rollVec = [["Classifier Name","slow roll","ramp up","ramp down"],
 #		["Confidence Level",12.5,12.5,75]]
-fNames = ["motorside_orbit.png","motorside_x.png","motorside_y.png"]
-writeReport(fNames,condVec,rollVec,False)
+#fNames = ["motorside_orbit.png","motorside_x.png","motorside_y.png"]
+#writeReport(fNames,condVec,rollVec,False)
