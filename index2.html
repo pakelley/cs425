@@ -1,0 +1,407 @@
+ <!doctype html>
+<head>
+
+  <link type="text/css" rel="stylesheet" href="http://ajax.googleapis.com/ajax/libs/jqueryui/1.8/themes/base/jquery-ui.css">
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.6.2/jquery.min.js"></script>
+  <script>
+    //jQuery.noConflict();
+  </script>
+
+  <link type="text/css" rel="stylesheet" href="src/rickshaw.min.css" >
+
+  <link type="text/css" rel="stylesheet" href="src/extensions.css?v=2">
+
+
+  <script src="src/d3.v3.min.js"></script>
+
+  <script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.8.15/jquery-ui.min.js"></script>
+
+  <script src="src/rickshaw.min.js"></script>
+
+  <script src="http://cdn.pubnub.com/pubnub.min.js"></script>
+  <script src="src/Rickshaw.Fixtures.PubNub.js"></script>
+
+  <script src="src/extensions.js"></script>
+
+  <title>GE Machine Learning</title>
+		<meta charset="utf-8" />
+		<meta name="referrer" content="origin">
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+
+</head>
+<body>
+
+
+
+<div id="content">
+
+  <form id="r_side_panel">
+    <h1>Turbine Roll</h1>
+    <section><div id="r_legend"></div></section>
+    <section>
+<!-----
+      <div id="r_renderer_form" class="toggler">
+        <input type="radio" name="renderer" id="r_area" value="area" checked>
+        <label for="area">area</label>
+        <input type="radio" name="renderer" id="r_bar" value="bar">
+        <label for="bar">bar</label>
+        <input type="radio" name="renderer" id="r_line" value="line">
+        <label for="line">line</label>
+        <input type="radio" name="renderer" id="r_scatter" value="scatterplot">
+        <label for="scatter">scatter</label>
+      </div>
+------>
+    </section>
+    <section>
+      <div id="r_offset_form">
+        <label for="stack">
+          <input type="radio" name="offset" id="r_stack" value="zero" checked>
+          <span>stack</span>
+        </label>
+        <label for="stream">
+          <input type="radio" name="offset" id="r_stream" value="wiggle">
+          <span>stream</span>
+        </label>
+        <label for="pct">
+          <input type="radio" name="offset" id="r_pct" value="expand">
+          <span>pct</span>
+        </label>
+        <label for="value">
+          <input type="radio" name="offset" id="r_value" value="value">
+          <span>value</span>
+        </label>
+      </div>
+      <div id="r_interpolation_form">
+        <label for="cardinal">
+          <input type="radio" name="interpolation" id="r_cardinal" value="cardinal" checked>
+          <span>cardinal</span>
+        </label>
+        <label for="linear">
+          <input type="radio" name="interpolation" id="r_linear" value="linear">
+          <span>linear</span>
+        </label>
+        <label for="step">
+          <input type="radio" name="interpolation" id="r_step" value="step-after">
+          <span>step</span>
+        </label>
+      </div>
+    </section>
+    <section>
+      <h6>Smoothing</h6>
+      <div id="r_smoother"></div>
+    </section>
+    <section></section>
+  </form>
+
+  <div id="r_chart_container">
+    <div id="r_chart">
+        <div id="r_load">Loading...</div>
+        <div class="rect1"></div>
+        <div class="rect2"></div>
+        <div class="rect3"></div>
+        <div class="rect4"></div>
+        <div class="rect5"></div>
+      </div>
+    </div>
+    <div id="r_timeline"></div>
+    <div id="r_preview"></div>
+  </div>
+
+   <form id="e_side_panel">
+    <h1>Turbine Error Modes</h1>
+    <section><div id="e_legend"></div></section>
+    <section>
+<!--------
+      <div id="e_renderer_form" class="toggler">
+        <input type="radio" name="renderer" id="e_area" value="area" checked>
+        <label for="area">area</label>
+        <input type="radio" name="renderer" id="e_bar" value="bar">
+        <label for="bar">bar</label>
+        <input type="radio" name="renderer" id="e_line" value="line">
+        <label for="line">line</label>
+        <input type="radio" name="renderer" id="e_scatter" value="scatterplot">
+        <label for="scatter">scatter</label>
+      </div>
+----->
+    </section>
+    <section>
+      <div id="e_offset_form">
+        <label for="stack">
+          <input type="radio" name="offset" id="e_stack" value="zero" checked>
+          <span>stack</span>
+        </label>
+        <label for="stream">
+          <input type="radio" name="offset" id="e_stream" value="wiggle">
+          <span>stream</span>
+        </label>
+        <label for="pct">
+          <input type="radio" name="offset" id="e_pct" value="expand">
+          <span>pct</span>
+        </label>
+        <label for="value">
+          <input type="radio" name="offset" id="e_value" value="value">
+          <span>value</span>
+        </label>
+      </div>
+      <div id="e_interpolation_form">
+        <label for="cardinal">
+          <input type="radio" name="interpolation" id="e_cardinal" value="cardinal" checked>
+          <span>cardinal</span>
+        </label>
+        <label for="linear">
+          <input type="radio" name="interpolation" id="e_linear" value="linear">
+          <span>linear</span>
+        </label>
+        <label for="step">
+          <input type="radio" name="interpolation" id="e_step" value="step-after">
+          <span>step</span>
+        </label>
+      </div>
+    </section>
+    <section>
+      <h6>Smoothing</h6>
+      <div id="e_smoother"></div>
+    </section>
+    <section></section>
+  </form>
+
+  <div id="e_chart_container">
+    <div id="e_chart">
+        <div id="e_load">Loading...</div>
+        <div class="rect1"></div>
+        <div class="rect2"></div>
+        <div class="rect3"></div>
+        <div class="rect4"></div>
+        <div class="rect5"></div>
+      </div>
+    </div>
+    <div id="e_timeline"></div>
+    <div id="e_preview"></div>
+  </div>
+
+</div>
+          <section id="sensor_data">
+            <div class="container">
+              <h3>Turbine sensor data</h3>
+              <p>A display of the turbine's sensor data.</p>
+							<!--<iframe id="mX" src="mX.html" name="targetframe" allowTransparency="true" scrolling="no" frameborder="0" width="400" height="400"> </iframe>
+							<iframe id="oX" src="oX.html" name="targetframe" allowTransparency="true" scrolling="no" frameborder="0" width="400" height="400"> </iframe>
+							<iframe id="mY" src="mY.html" name="targetframe" allowTransparency="true" scrolling="no" frameborder="0" width="400" height="400"> </iframe>
+							<iframe id="oY" src="oY.html" name="targetframe" allowTransparency="true" scrolling="no" frameborder="0" width="400" height="400"> </iframe> --->
+							<iframe id="mO" src="mO.html" name="targetframe" allowTransparency="true" scrolling="no" frameborder="0" width="400" height="400"> </iframe>
+							<iframe id="oO" src="oO.html" name="targetframe" allowTransparency="true" scrolling="no" frameborder="0" width="400" height="400"> </iframe>
+
+            </div>
+          </section>
+
+
+<script>
+var palette = new Rickshaw.Color.Palette( { scheme: 'spectrum14' } );
+// instantiate our graph!
+var roll = new Rickshaw.Graph( {
+  element: document.getElementById("r_chart"),
+  width: 900,
+  height: 500,
+  renderer: 'line',
+  stroke: true,
+  preserve: true,
+  series: [
+    {
+      color: palette.color(),
+      data: [],
+      name: 'Fast-Roll'
+    }, {
+      color: palette.color(),
+      data: [],
+      name: 'Ramp-Down'
+    }, {
+      color: palette.color(),
+      data: [],
+      name: 'Ramp-Up'
+    }, {
+      color: palette.color(),
+      data: [],
+      name: 'Slow-Roll'
+    }
+  ]
+});
+
+var error = new Rickshaw.Graph( {
+  element: document.getElementById("e_chart"),
+  width: 900,
+  height: 500,
+  renderer: 'line',
+  stroke: true,
+  preserve: true,
+  series: [
+    {
+      color: palette.color(),
+      data: [],
+      name: 'Bearing Rub'
+    }, {
+      color: palette.color(),
+      data: [],
+      name: 'Preload'
+    }, {
+      color: palette.color(),
+      data: [],
+      name: 'Safe'
+    }, {
+      color: palette.color(),
+      data: [],
+      name: 'Weight Unbalance'
+    }
+  ]
+});
+
+
+var r_init = function() {
+  // remove loading animation
+  var r_element = document.getElementById("r_load");
+  r_element.parentNode.removeChild(r_element);
+  roll.render();
+  //var r_preview = new Rickshaw.Graph.RangeSlider( {
+   // graph: roll,
+  // element: document.getElementById('r_preview'),
+  //} );
+  var r_hoverDetail = new Rickshaw.Graph.HoverDetail( {
+    graph: roll,
+    xFormatter: function(x) {
+      return new Date(x * 1000).toString();
+    }
+  } );
+  var r_annotator = new Rickshaw.Graph.Annotate( {
+    graph: roll,
+    element: document.getElementById('r_timeline')
+  } );
+  var r_legend = new Rickshaw.Graph.Legend( {
+    graph: roll,
+    element: document.getElementById('r_legend')
+  } );
+  var r_shelving = new Rickshaw.Graph.Behavior.Series.Toggle( {
+    graph: roll,
+    legend: r_legend
+  } );
+  var r_order = new Rickshaw.Graph.Behavior.Series.Order( {
+    graph: roll,
+    legend: r_legend
+  } );
+  var r_highlighter = new Rickshaw.Graph.Behavior.Series.Highlight( {
+    graph: roll,
+    legend: r_legend
+  } );
+  var r_smoother = new Rickshaw.Graph.Smoother( {
+    graph: roll,
+    element: document.querySelector('#r_smoother')
+  } );
+  var r_ticksTreatment = 'glow';
+  var r_xAxis = new Rickshaw.Graph.Axis.Time( {
+    graph: roll,
+    ticksTreatment: r_ticksTreatment,
+    timeFixture: new Rickshaw.Fixtures.Time.Local()
+  } );
+  r_xAxis.render();
+  var r_yAxis = new Rickshaw.Graph.Axis.Y( {
+    graph: roll,
+    tickFormat: Rickshaw.Fixtures.Number.formatKMBT,
+    ticksTreatment: r_ticksTreatment
+  } );
+  r_yAxis.render();
+  var r_controls = new RenderControls( {
+    element: document.querySelector('#r_side_panel'),
+    graph: roll
+  } );
+};
+
+var e_init = function() {
+  // remove loading animation
+  var e_element = document.getElementById("e_load");
+  e_element.parentNode.removeChild(e_element);
+  error.render();
+  //var e_preview = new Rickshaw.Graph.RangeSlider( {
+  //  graph: error,
+  //  element: document.getElementById('e_preview'),
+  //} );
+  var e_hoverDetail = new Rickshaw.Graph.HoverDetail( {
+    graph: error,
+    xFormatter: function(x) {
+      return new Date(x * 1000).toString();
+    }
+  } );
+  var e_annotator = new Rickshaw.Graph.Annotate( {
+    graph: error,
+    element: document.getElementById('e_timeline')
+  } );
+  var e_legend = new Rickshaw.Graph.Legend( {
+    graph: error,
+    element: document.getElementById('e_legend')
+  } );
+  var e_shelving = new Rickshaw.Graph.Behavior.Series.Toggle( {
+    graph: error,
+    legend: e_legend
+  } );
+  var e_order = new Rickshaw.Graph.Behavior.Series.Order( {
+    graph: error,
+    legend: e_legend
+  } );
+  var e_highlighter = new Rickshaw.Graph.Behavior.Series.Highlight( {
+    graph: error,
+    legend: e_legend
+  } );
+  var e_smoother = new Rickshaw.Graph.Smoother( {
+    graph: error,
+    element: document.querySelector('#e_smoother')
+  } );
+  var e_ticksTreatment = 'glow';
+  var e_xAxis = new Rickshaw.Graph.Axis.Time( {
+    graph: error,
+    ticksTreatment: e_ticksTreatment,
+    timeFixture: new Rickshaw.Fixtures.Time.Local()
+  } );
+  e_xAxis.render();
+  var e_yAxis = new Rickshaw.Graph.Axis.Y( {
+    graph: error,
+    tickFormat: Rickshaw.Fixtures.Number.formatKMBT,
+    ticksTreatment: e_ticksTreatment
+  } );
+  e_yAxis.render();
+  var e_controls = new RenderControls( {
+    element: document.querySelector('#e_side_panel'),
+    graph: error
+  } );
+
+
+  // add some data every so often
+};
+new Rickshaw.Fixtures.PubNub({
+  subscribe_key: 'sub-c-90fcb4bc-4a41-11e7-8e91-0619f8945a4f',
+  channel: 'rollState',
+  history: true,
+  graph: roll,
+  connect: r_init,
+  limit: 50
+});
+
+new Rickshaw.Fixtures.PubNub({
+  subscribe_key: 'sub-c-90fcb4bc-4a41-11e7-8e91-0619f8945a4f',
+  channel: 'errorState',
+  history: true,
+  graph: error,
+  connect: e_init,
+  limit: 50
+});
+
+</script>
+
+	<script language="javascript" type="text/javascript">
+
+	var timeout = setInterval(reloadGraph, 5000);
+	function reloadGraph () {
+				$('#mO').attr('src', $('#mO').attr('src'));
+			 	$('#oO').attr('src', $('#oO').attr('src'));
+				//setTimeout(reloadGraph, 5000);
+		 //reloadGraph()
+	}
+	</script>
+
+</body>

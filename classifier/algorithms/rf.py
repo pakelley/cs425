@@ -161,11 +161,11 @@ class RF:
         et_tot_probs = np.mean( np.mean(et_probs, axis=1) , axis=0)
         # et_tot_probs = et_probs[3]
 
-        #print probs
+        print et_tot_probs
         # ens_probs = np.mean(probs, axis=1)
         class_id = np.argmax(et_tot_probs, axis=0)
         classification = self.class_names[class_id]
-        # print et_tot_probs
+        
 
         if self.use_roll_classes:
             return {
@@ -230,11 +230,11 @@ class RF:
 
     def load(self, path):
         for s_id in range(N_SENSORS):
-            rf_filename = "%s/rf_s%d.pkl" % (path, s_id)
+            rf_filename = "%srf_s%d.pkl" % (path, s_id)
             print "Saving Random Forest Model from %s" % rf_filename
-            self.rf_clfs[s_id] = joblib.load(rf_filename)
+            self.et_clfs[s_id] = joblib.load(rf_filename)
             print "Saving Extra Trees Model"
-            joblib.dump(et_clfs[s_id], "%s/et_s%d.pkl" % (path, s_id))
+            joblib.dump(self.et_clfs[s_id], "%set_s%d.pkl" % (path, s_id))
 
 
     # X[s_id][train], y[s_id][train]
