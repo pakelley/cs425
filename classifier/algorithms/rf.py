@@ -25,7 +25,6 @@ LOAD_PATH         = ""
 
 FILENAME          = "data/combined_4-29.csv"
 SENSOR_IDS        = [218, 244, 270, 296]
-COND_CLASS_NAMES  = ['Normal', 'Unbalance', 'Preload', 'BearingRub']
 TOP_THRESH        = 2800
 BOT_THRESH        = 600
 
@@ -35,14 +34,14 @@ BOT_THRESH        = 600
 # from parse_csv import parse_s1_csv
 
 
-
 def prec_rec(pred, truth):
-    TP = np.sum((pred == "Normal") and (truth == "Normal"))
-    FP = np.sum((pred != "Normal") and (truth == "Normal"))
-    TN = np.sum((pred != "Normal") and (truth != "Normal"))
-    FN = np.sum((pred == "Normal") and (truth != "Normal"))
-    precision = TP / (TP + FP)
-    recall = TP / (TP + TN)
+    normal_arr = np.array([CONDITION_CLASSES.index('Normal')] * len(pred))
+    TP = np.sum( np.logical_and(np.equal(pred, normal_arr), np.equal(truth, normal_arr) ))
+    FP = np.sum( np.logical_and(np.not_equal(pred, normal_arr), np.equal(truth, normal_arr)))
+    TN = np.sum( np.logical_and(np.not_equal(pred, normal_arr), np.not_equal(truth, normal_arr)))
+    FN = np.sum( np.logical_and(np.equal(pred, normal_arr), np.not_equal(truth, normal_arr)))
+    precision = np.divide(TP, np.add(TP, FP))
+    recall    = np.divide(TP, np.add(TP, TN))
     return precision, recall
 
 
@@ -155,20 +154,12 @@ class RF:
 
     # Classify # TODO: add check for trained model
     def classify(self, cracked_data):
-        probs = [None] * N_SENSORS
-        et_probs = [None] * N_SENSORS
-        #print cracked_data.shape
-        X = np.transpose(cracked_data, (2, 0, 1) )
-        for s_id in range(N_SENSORS):
-            # rf_pred = rf_clfs[s_id].predict(X[s_id][test])
-            # et_pred = self.et_clfs[s_id].predict(X[s_id], verbose=False)
-            et_probs[s_id] = self.et_clfs[s_id].predict_proba(X[s_id])
-            # probs[s_id] = np.random.rand(N_CLASSES)  # clf.predict_proba(cracked_data)
-            # probs[s_id] = et_pred
+        et_probs = self.classify_internal(cracked_data)
+        # et_tot_probs = np.mean( np.mean(et_probs, axis=1) , axis=0)
+        et_tot_probs = et_probs[3]
 
         #print probs
         # ens_probs = np.mean(probs, axis=1)
-        et_tot_probs = np.mean( np.mean(et_probs, axis=1) , axis=0)
         class_id = np.argmax(et_tot_probs, axis=0)
         classification = self.class_names[class_id]
         # print et_tot_probs
@@ -180,6 +171,21 @@ class RF:
             "bearing_rub": et_tot_probs[3],
             "safe": et_tot_probs[0]
             }
+
+    def classify_internal(self, cracked_data):
+        # probs = [None] * N_SENSORS
+        et_probs = [None] * N_SENSORS
+        #print cracked_data.shape
+        X = np.transpose(cracked_data, (2, 0, 1) )
+        for s_id in range(N_SENSORS):
+            # rf_pred = rf_clfs[s_id].predict(X[s_id][test])
+            # et_pred = self.et_clfs[s_id].predict(X[s_id], verbose=False)
+            et_probs[s_id] = self.et_clfs[s_id].predict_proba(X[s_id])
+            # probs[s_id] = np.random.rand(N_CLASSES)  # clf.predict_proba(cracked_data)
+            # probs[s_id] = et_pred
+        # et_tot_probs = np.mean( np.mean(et_probs, axis=1) , axis=0)
+
+        return et_probs
 
 
     def probs(self, X):
@@ -267,13 +273,13 @@ class RF:
         ]
         condition_classes = np.array(condition_classes[fast_mask])
         cond_classes = [
-            COND_CLASS_NAMES.index(class_name)
+            CONDITION_CLASSES.index(class_name)
             for class_name in condition_classes
         ]
 
         ### Stratified selection of data
         # MAX_LEN = 200
-        # cl_masks = [condition_classes == class_name for class_name in COND_CLASS_NAMES]
+        # cl_masks = [condition_classes == class_name for class_name in CONDITION_CLASSES]
         # X_cl = [None] * N_SENSORS
         # for s_id in range(N_SENSORS):
         # X_cl = np.array([X_ft[mask] for mask in cl_masks])
@@ -302,22 +308,39 @@ class RF:
 
 
     def evaluate(self, X, y):
-        rf_outputs = [{}] * N_SENSORS
-        et_outputs = [{}] * N_SENSORS
+        # rf_outputs = [{}] * N_SENSORS
+        et_outputs = {}
 
-        precision, recall             = prec_rec(rf_pred, y[s_id][test])
-        rf_outputs[s_id]['precision'] = precision
-        rf_outputs[s_id]['recall']    = recall
-        rf_outputs[s_id]['conf_mat']  = confusion_matrix(y[s_id][test], rf_pred)
-        rf_outputs[s_id]['acc']       = np.mean(rf_pred == y[s_id][test])
+        et_pred = self.classify_internal(X)
+        # et_tot_probs = np.mean(et_pred, axis=0)
+        et_tot_probs = np.array(et_pred)[3]
+        et_classes = np.argmax(et_tot_probs, axis=1)
+        et_names = np.array([CONDITION_CLASSES[c_id] for c_id in et_classes])
+        y_names  = np.array([CONDITION_CLASSES[c_id] for c_id in y])
 
-        precision, recall             = prec_rec(et_pred, y[s_id][test])
-        et_outputs[s_id]['precision'] = precision
-        et_outputs[s_id]['recall']    = recall
-        et_outputs[s_id]['conf_mat']  = confusion_matrix(y[s_id][test], et_pred)
-        et_outputs[s_id]['acc']       = np.mean(et_pred == y[s_id][test])
 
-        return rf_outputs, et_outputs
+        # precision, recall             = prec_rec(rf_pred, y[s_id])
+        # rf_outputs[s_id]['precision'] = precision
+        # rf_outputs[s_id]['recall']    = recall
+        # rf_outputs[s_id]['conf_mat']  = confusion_matrix(y[s_id], rf_pred)
+        # rf_outputs[s_id]['acc']       = np.mean(rf_pred == y[s_id])
+
+        precision, recall       = prec_rec(et_classes, y)
+        et_outputs['precision'] = precision
+        et_outputs['recall']    = recall
+        et_outputs['conf_mat']  = confusion_matrix(y, et_classes)
+        et_outputs['acc']       = np.mean(et_classes == y)
+
+        X_t = X.transpose(2, 0, 1)
+        bad_indices = np.not_equal(et_classes,y)
+        nped = np.array(et_pred).transpose(1,2,0)
+        npy = np.array(y)
+        bad_indices = np.equal(et_classes, y)
+        bad_data = nped[bad_indices]
+        bad_labels = npy[bad_indices]
+        # bad_records = np.array([rec if test for rec, test in zip(et_tot_probs, bad_indices)])
+
+        return et_outputs
 
     def cross_val(self, X, y):
         for (fold_count, (train, test)) in enumerate(skf.split(X[0], y[0])):
@@ -390,3 +413,7 @@ def gen_data_clf():
     X, y = rf.read_data()
     rf.train(X,y)
     return X, y, rf
+
+def test_eval(X, y):
+    rf = gen_clf(X, y)
+    return rf.evaluate(X.transpose(1,2,0),y)
