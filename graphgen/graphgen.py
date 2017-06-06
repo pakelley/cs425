@@ -33,8 +33,19 @@ class GraphGen:
             self.y_roll = self.y_roll[1:]
             self.y_error = self.y_error[1:]
         self.sensorData = sensorData.T
-        self.genRollGraph()
-        self.genErrorGraph()
+        
+        timeNow = datetime.datetime.now()
+        timeNextQuery = timeNow + datetime.timedelta(seconds=1)
+        delta = datetime.datetime.utcnow() - datetime.datetime(1970, 1, 1)
+        mSecs = (int) (delta.total_seconds())
+        roll_data = {'x':mSecs, 'y':y_roll[index]}
+        error_data = {'x':mSecs, 'y':y_error[index]}
+        
+        pubnub.publish().channel("rollState").message(roll_data).should_store(True).use_post(False).sync()
+        pubnub.publish().channel("errorState").message(error_data).should_store(True).use_post(False).sync()
+        #self.genRollGraph()
+        #self.genErrorGraph()
+        
         self.genSensorGraph()
     def genRollGraph(self):
 
