@@ -122,9 +122,11 @@ class RF:
                  random_state=RANDOM_STATE,
                  verbose=VERBOSE,
                  class_names=CONDITION_CLASSES,
-                 filepath=None):
+                 filepath=None,
+                 use_roll_classes=False):
 
         self.class_names = class_names
+        self.use_roll_classes = use_roll_classes
 
         # Either make blank classifiers for training, or read from file
         if filepath != None:
@@ -155,8 +157,9 @@ class RF:
     # Classify # TODO: add check for trained model
     def classify(self, cracked_data):
         et_probs = self.classify_internal(cracked_data)
-        # et_tot_probs = np.mean( np.mean(et_probs, axis=1) , axis=0)
-        et_tot_probs = et_probs[3]
+        et_prods = np.square(et_prods)
+        et_tot_probs = np.mean( np.mean(et_probs, axis=1) , axis=0)
+        # et_tot_probs = et_probs[3]
 
         #print probs
         # ens_probs = np.mean(probs, axis=1)
@@ -164,13 +167,22 @@ class RF:
         classification = self.class_names[class_id]
         # print et_tot_probs
 
-        return {
-            "classification_name": classification,
-            "unbalance": et_tot_probs[1],
-            "preload": et_tot_probs[2],
-            "bearing_rub": et_tot_probs[3],
-            "safe": et_tot_probs[0]
-            }
+        if self.use_roll_classes:
+            return {
+                "classification_name": classification,
+                "ramp_up": et_tot_probs[0],
+                "ramp_down": et_tot_probs[1],
+                "slow_roll": et_tot_probs[2],
+                "fast_roll": et_tot_probs[3]
+                }
+        else:
+            return {
+                "classification_name": classification,
+                "safe": et_tot_probs[0],
+                "unbalance": et_tot_probs[1],
+                "preload": et_tot_probs[2],
+                "bearing_rub": et_tot_probs[3]
+                }
 
     def classify_internal(self, cracked_data):
         # probs = [None] * N_SENSORS
@@ -267,16 +279,33 @@ class RF:
         fast_mask = (roll_classes == 'fast_roll')
         X_f = np.array([x[fast_mask] for x in X_spl])
         # X_ft = np.transpose(X_f, (1, 2, 0))
-        roll_classes = np.array(roll_classes[fast_mask])
+        # roll_classes = np.array(roll_classes[fast_mask])
         r_classes = [
             ROLL_CLASSES.index(class_name) for class_name in roll_classes
         ]
-        condition_classes = np.array(condition_classes[fast_mask])
+        # condition_classes = np.array(condition_classes[fast_mask])
         cond_classes = [
             CONDITION_CLASSES.index(class_name)
             for class_name in condition_classes
         ]
 
+        print "Ramp Up Count:"
+        print np.array(r_classes)[np.equal(r_classes, ROLL_CLASSES.index("ramp_up"))].shape[0]
+        print "Ramp Down Count:"
+        print np.array(r_classes)[np.equal(r_classes, ROLL_CLASSES.index("ramp_down"))].shape[0]
+        print "Slow Roll Count:"
+        print np.array(r_classes)[np.equal(r_classes, ROLL_CLASSES.index("slow_roll"))].shape[0]
+        print "Fast Roll Count:"
+        print np.array(r_classes)[np.equal(r_classes, ROLL_CLASSES.index("fast_roll"))].shape[0]
+
+        print "Normal Count:"
+        print np.array(cond_classes)[np.equal(cond_classes, CONDITION_CLASSES.index("Normal"))].shape[0]
+        print "Unbalanced Count:"
+        print np.array(cond_classes)[np.equal(cond_classes, CONDITION_CLASSES.index("Unbalance"))].shape[0]
+        print "Bearing Rub Count:"
+        print np.array(cond_classes)[np.equal(cond_classes, CONDITION_CLASSES.index("BearingRub"))].shape[0]
+        print "Preload Count:"
+        print np.array(cond_classes)[np.equal(cond_classes, CONDITION_CLASSES.index("Preload"))].shape[0]
         ### Stratified selection of data
         # MAX_LEN = 200
         # cl_masks = [condition_classes == class_name for class_name in CONDITION_CLASSES]
@@ -293,10 +322,15 @@ class RF:
         ### FINAL FORMatting
         # X = np.reshape(X_cl, (N_SENSORS, -1, SAMPLE_LEN)) # np.transpose(X_cl, (1, 2, 0))
         # y = np.reshape(cond_cl, (-1) )
-        print X_f.shape
-        print np.array(cond_classes).shape
-        X = X_f
-        y = cond_classes
+        # print X_f.shape
+        # print np.array(cond_classes).shape
+
+        # X = X_f
+        X = X_spl
+        if self.use_roll_classes:
+            y = r_classes
+        else:
+            y = cond_classes
         return X, y
 
 
@@ -312,11 +346,13 @@ class RF:
         et_outputs = {}
 
         et_pred = self.classify_internal(X)
-        # et_tot_probs = np.mean(et_pred, axis=0)
-        et_tot_probs = np.array(et_pred)[3]
+        et_pred = np.square(et_pred)
+        # et_tot_probs = np.max(et_pred, axis=0)
+        et_tot_probs = np.mean(et_pred, axis=0)
+        # et_tot_probs = np.array(et_pred)[3]
         et_classes = np.argmax(et_tot_probs, axis=1)
-        et_names = np.array([CONDITION_CLASSES[c_id] for c_id in et_classes])
-        y_names  = np.array([CONDITION_CLASSES[c_id] for c_id in y])
+        et_names = np.array([self.class_names[c_id] for c_id in et_classes])
+        y_names  = np.array([self.class_names[c_id] for c_id in y])
 
 
         # precision, recall             = prec_rec(rf_pred, y[s_id])
@@ -331,6 +367,7 @@ class RF:
         et_outputs['conf_mat']  = confusion_matrix(y, et_classes)
         et_outputs['acc']       = np.mean(et_classes == y)
 
+        import pdb; pdb.set_trace()
         X_t = X.transpose(2, 0, 1)
         bad_indices = np.not_equal(et_classes,y)
         nped = np.array(et_pred).transpose(1,2,0)
@@ -403,17 +440,22 @@ class RF:
 # rt_p, et_p = rf.probs(X)
 # print (sum(rt_p == y) * 1.0) / rt_p.shape[0]
 
-def gen_clf(X, y):
-    rf = RF()
+def gen_clf(X, y, use_roll_classes=False):
+    rf = RF(use_roll_classes=use_roll_classes)
     rf.train(X,y)
     return rf
 
-def gen_data_clf():
-    rf = RF()
+def gen_data_clf(use_roll_classes=False):
+    rf = RF(use_roll_classes=use_roll_classes)
     X, y = rf.read_data()
     rf.train(X,y)
     return X, y, rf
 
-def test_eval(X, y):
-    rf = gen_clf(X, y)
+def test_eval_wData(use_roll_classes=False):
+    X, y, rf = gen_data_clf(use_roll_classes=use_roll_classes)
     return rf.evaluate(X.transpose(1,2,0),y)
+
+def test_eval(X, y, use_roll_classes=False):
+    rf = gen_clf(X, y, use_roll_classes=use_roll_classes)
+    return rf.evaluate(X.transpose(1,2,0),y)
+
